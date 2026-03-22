@@ -22,7 +22,7 @@ Junior bu soruları sormaz ya da cevaplamaya çalışmaz. Mid-level sorar ama ya
 
 ### 1) Problem Çerçeveleme (Framing)
 
-> Ilgili katman: [03 — Problem Çerçeveleme](03-problem-cerceveleme.md)
+> Ilgili katman: [Katman B — Klasik ML (Problem Framing)](katman-B-klasik-ml.md)
 
 | Junior | Mid | Senior |
 |--------|-----|--------|
@@ -43,7 +43,7 @@ Junior bu soruları sormaz ya da cevaplamaya çalışmaz. Mid-level sorar ama ya
 
 ### 2) Veri Hakimiyeti
 
-> Ilgili katman: [04 — Veri Kalitesi ve Keşif](04-veri-kalitesi.md)
+> Ilgili katman: [Katman A — Temeller (EDA & Veri Kalitesi)](katman-A-temeller.md)
 
 | Junior | Mid | Senior |
 |--------|-----|--------|
@@ -64,7 +64,7 @@ Junior bu soruları sormaz ya da cevaplamaya çalışmaz. Mid-level sorar ama ya
 
 ### 3) Modelleme Ustalığı
 
-> Ilgili katman: [05 — Modelleme](05-modelleme.md)
+> Ilgili katman: [Katman B — Klasik ML (Modelleme Ustalığı)](katman-B-klasik-ml.md)
 
 | Junior | Mid | Senior |
 |--------|-----|--------|
@@ -89,7 +89,7 @@ Junior bu soruları sormaz ya da cevaplamaya çalışmaz. Mid-level sorar ama ya
 
 ### 4) Üretim ve Yaşam Döngüsü
 
-> Ilgili katman: [06 — MLOps ve Üretim](06-mlops.md)
+> Ilgili katman: [Katman E — MLOps](katman-E-mlops.md)
 
 | Junior | Mid | Senior |
 |--------|-----|--------|
@@ -111,7 +111,7 @@ Junior bu soruları sormaz ya da cevaplamaya çalışmaz. Mid-level sorar ama ya
 
 ### 5) İletişim ve Liderlik
 
-> Ilgili katman: [07 — İletişim ve Stakeholder Yönetimi](07-iletisim.md)
+> Ilgili katman: [Katman G — Senior Davranışlar (İletişim & Liderlik)](katman-G-senior-davranislar.md)
 
 | Junior | Mid | Senior |
 |--------|-----|--------|
@@ -135,7 +135,7 @@ Junior bu soruları sormaz ya da cevaplamaya çalışmaz. Mid-level sorar ama ya
 
 ### 6) Deney ve Nedensellik (FAANG Seviyesi Ayrım)
 
-> Ilgili katman: [08 — Deney Tasarımı ve Nedensellik](08-deney-tasarimi.md)
+> Ilgili katman: [Katman C — Deney Tasarımı ve Nedensellik](katman-C-deney-nedensellik.md)
 
 | Junior | Mid | Senior |
 |--------|-----|--------|

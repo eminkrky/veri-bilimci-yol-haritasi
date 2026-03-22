@@ -43,34 +43,67 @@ Ease: Yapılabilirlik kolaylığı (1–10)
 
 ```python
 import pandas as pd
+from dataclasses import dataclass
+from typing import Optional
 
-def prioritize_projects(projects: list[dict]) -> pd.DataFrame:
+@dataclass
+class Project:
+    ad: str
+    impact: int      # 1-10: iş etkisi büyüklüğü
+    confidence: int  # 1-10: gerçekleşme güveni
+    ease: int        # 1-10: yapılabilirlik kolaylığı
+    sure_hafta: Optional[int] = None  # tahmini süre
+
+def prioritize_projects(projects: list[Project]) -> pd.DataFrame:
     """
     ICE skoruna göre proje önceliklendir.
 
-    projects = [
-        {"name": "Churn model", "impact": 8, "confidence": 7, "ease": 5},
-        {"name": "Data pipeline hızlandırma", "impact": 4, "confidence": 9, "ease": 8},
-        {"name": "GenAI chatbot", "impact": 9, "confidence": 3, "ease": 2},
-    ]
+    ICE = Impact × Confidence × Ease
+    Yüksek skor → önce yap
     """
-    df = pd.DataFrame(projects)
-    df["ice_score"] = df["impact"] * df["confidence"] * df["ease"]
-    return df.sort_values("ice_score", ascending=False)
+    rows = []
+    for p in projects:
+        ice = p.impact * p.confidence * p.ease
+        rows.append({
+            "Proje": p.ad,
+            "Impact": p.impact,
+            "Confidence": p.confidence,
+            "Ease": p.ease,
+            "ICE Skoru": ice,
+            "Süre (hafta)": p.sure_hafta or "?"
+        })
 
-# Kullanım
-projects = [
-    {"name": "Churn Modeli (LightGBM)", "impact": 8, "confidence": 7, "ease": 5,
-     "est_revenue": "2M TL/yıl", "est_weeks": 4},
-    {"name": "SQL Pipeline Optimizasyonu", "impact": 4, "confidence": 9, "ease": 8,
-     "est_revenue": "100K TL/yıl (maliyet)", "est_weeks": 1},
-    {"name": "GenAI Müşteri Chatbot", "impact": 9, "confidence": 3, "ease": 2,
-     "est_revenue": "Belirsiz", "est_weeks": 16},
-    {"name": "A/B Test Çerçevesi", "impact": 7, "confidence": 8, "ease": 6,
-     "est_revenue": "3M TL/yıl (iyileştirilmiş kararlar)", "est_weeks": 6},
+    df = pd.DataFrame(rows)
+    df = df.sort_values("ICE Skoru", ascending=False).reset_index(drop=True)
+    df.index += 1  # 1'den başlayan sıralama
+    df.index.name = "Öncelik"
+    return df
+
+# --- Örnek Kullanım ---
+projeler = [
+    Project("Churn modeli yenile", impact=8, confidence=7, ease=5, sure_hafta=6),
+    Project("Dashboard otomasyonu", impact=4, confidence=9, ease=8, sure_hafta=2),
+    Project("Real-time öneri sistemi", impact=9, confidence=4, ease=3, sure_hafta=16),
+    Project("A/B test altyapısı", impact=7, confidence=8, ease=6, sure_hafta=4),
+    Project("Model monitoring ekle", impact=6, confidence=9, ease=7, sure_hafta=3),
 ]
-print(prioritize_projects(projects))
+
+tablo = prioritize_projects(projeler)
+print(tablo.to_string())
 ```
+
+Çıktı (örnek):
+```
+          Proje  Impact  Confidence  Ease  ICE Skoru Süre (hafta)
+Öncelik
+1    Model monitoring ekle       6           9     7        378            3
+2    A/B test altyapısı          7           8     6        336            4
+3    Dashboard otomasyonu        4           9     8        288            2
+4    Churn modeli yenile         8           7     5        280            6
+5    Real-time öneri sistemi     9           4     3        108           16
+```
+
+> **Senior Notu:** ICE skoru mutlak değil, tartışma başlatıcı. Yüksek ICE ama 16 haftalık iş → daha kısa parçalara böl. Dashboard otomasyonu düşük etki ama hızlı kazanım → sprint başında moral için iyi.
 
 ### OKR ile DS Bağlantısı
 
@@ -147,6 +180,37 @@ KR3 (1 gün retraining)
 - [ ] [Kişi]: [Aksiyon] — Deadline: [tarih]
 - [ ] [Kişi]: [Aksiyon] — Deadline: [tarih]
 ```
+
+### Veri Bilimci OKR Örnekleri
+
+**Kötü OKR vs İyi OKR:**
+
+| | Kötü OKR | İyi OKR |
+|--|----------|---------|
+| Objective | "ML modellerini geliştir" | "Müşteri kaybını azaltarak geliri koru" |
+| KR1 | "Yeni modeller dene" | "Churn modeli AUC'sini 0.78 → 0.85'e çıkar (Q1 sonu)" |
+| KR2 | "Dashboard yap" | "Churn riski yüksek 500 müşteriye intervention; %15 retention artışı" |
+| KR3 | "Monitoring kur" | "Model drift alert sistemi: ≥ 0.2 PSI'da oto-alert (Q1 içinde)" |
+
+**Somut 3 OKR Örneği:**
+
+**OKR 1 — Churn Azaltma**
+- **Objective:** Aylık churn oranını %4.2'den %3.5'e indirerek 2M TL gelir koru
+- **KR1:** Churn tahmin modelini 0.82 AUC'ye çıkar
+- **KR2:** Yüksek risk segmentine proaktif kampanya → 1.000 müşteriyi retain et
+- **KR3:** Kampanya ROI'unu ölç: her 1 TL harcamaya 8 TL gelir
+
+**OKR 2 — MLOps Olgunluğu**
+- **Objective:** Model deployment süresini 2 haftadan 2 güne indir
+- **KR1:** CI/CD pipeline kur: commit → test → staging → production otomatik
+- **KR2:** Tüm production modellerine drift monitoring ekle (5/5 model)
+- **KR3:** Model incident response süresi: 4h → 30 dakika
+
+**OKR 3 — Veri Kalitesi**
+- **Objective:** Yanlış feature değerinden kaynaklanan model hatalarını sıfırla
+- **KR1:** 3 kritik pipeline için Pandera şema validasyonu
+- **KR2:** Data kalite dashboard: günlük %95+ completeness hedefi
+- **KR3:** "Sürpriz" data hatası sayısını Q3: 7 → Q4: 0'a indir
 
 > **Senior Notu:** "AUC 0.02 arttı" = hiçbir şey ifade etmez. "AUC artışı sayesinde aylık 500 müşteri daha tutuldu, bu 1.2M TL değeri" = anlamlı.
 
@@ -328,6 +392,75 @@ TECH_DEBT_MATRIX = {
     },
 }
 ```
+
+### Otomatik Model Performans Raporu
+
+Haftalık ya da aylık raporları elle yazmak yerine kod ile üretmek, hem tutarlılık sağlar hem DS zamanını korur. Aşağıdaki şablon **iki katmanlı** çıktı verir: yönetici için aksiyon özeti + teknik ekip için metrik detayı.
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
+from pathlib import Path
+
+def generate_model_performance_report(
+    model_name: str,
+    metrics_df: pd.DataFrame,  # kolonlar: date, accuracy, f1, precision, recall, predictions
+    output_format: str = "markdown"  # "markdown" veya "html"
+) -> str:
+    """
+    Haftalık model performans raporu üret.
+    Yönetici özeti + Teknik detay iki katmanlı.
+    """
+    latest = metrics_df.iloc[-1]
+    prev_week = metrics_df.iloc[-8] if len(metrics_df) >= 8 else metrics_df.iloc[0]
+
+    delta_acc = latest["accuracy"] - prev_week["accuracy"]
+    delta_symbol = "↑" if delta_acc > 0 else "↓" if delta_acc < 0 else "→"
+
+    # --- YÖNETİCİ ÖZETİ (teknik bilgi gerekmez) ---
+    executive_summary = f"""
+## {model_name} — Haftalık Performans Özeti
+**Tarih:** {latest['date'].strftime('%d %B %Y')}
+
+### 🎯 Bu Haftanın Durumu
+
+| | Değer | Geçen Haftaya Göre |
+|---|---|---|
+| **Başarı Oranı** | %{latest['accuracy']*100:.1f} | {delta_symbol} {abs(delta_acc)*100:.1f} puan |
+| **Günlük Tahmin** | {latest['predictions']:,} | — |
+| **Durum** | {'✅ Normal' if latest['accuracy'] > 0.80 else '⚠️ İzlemede' if latest['accuracy'] > 0.70 else '🚨 Kritik'} | — |
+
+### Yönetici için Özet
+{'Model beklentiler dahilinde çalışıyor. Aksiyon gerekmez.' if latest['accuracy'] > 0.80
+ else 'Model performansı düştü. Teknik ekip incelemekte.' if latest['accuracy'] > 0.70
+ else 'Acil müdahale gerekiyor. Model yeniden eğitim planlandı.'}
+"""
+
+    # --- TEKNİK DETAY (veri bilimciler için) ---
+    technical_detail = f"""
+### Teknik Metrikler (Son 7 Gün)
+
+| Tarih | Accuracy | F1 | Precision | Recall |
+|-------|----------|----|-----------| -------|
+{''.join(f"| {row['date'].strftime('%d/%m')} | {row['accuracy']:.3f} | {row['f1']:.3f} | {row['precision']:.3f} | {row['recall']:.3f} |\\n" for _, row in metrics_df.tail(7).iterrows())}
+
+> **Eşik değerleri:** Accuracy < 0.80 → uyarı, < 0.70 → acil müdahale
+"""
+
+    full_report = executive_summary + technical_detail
+
+    if output_format == "html":
+        import markdown
+        return markdown.markdown(full_report, extensions=["tables"])
+    return full_report
+
+# Kullanım:
+# report = generate_model_performance_report("Churn Modeli", metrics_df)
+# Path("reports/weekly_report.md").write_text(report)
+```
+
+> **Senior Notu:** Raporları otomatikleştirmenin iki faydası var: (1) DS her Pazartesi "rapor hazırlığı" için 2 saat harcamaz; (2) format tutarlı olduğu için yöneticiler karşılaştırma yapabilir. Raporu Slack/e-posta ile otomatik dağıtmak için Airflow veya GitHub Actions kullanılabilir. Önemli: raporun **ilk satırı** her zaman "aksiyon gerekiyor mu, gerektirmiyorsa söyle" sorusunu yanıtlamalı.
 
 ---
 
@@ -562,26 +695,78 @@ Senior'ın görevi cevap vermek değil, doğru soru sormak:
 
 ## G.5 Teknik Borç Yönetimi
 
+### Sezgisel Açıklama
+
+Teknik borç = bugün kısa yoldan yapılan iş + gelecekteki ek maliyeti. Bir notebook'tan kopyala-yapıştır ile modeli production'a almak işe yarar — ama 6 ay sonra kim o kodun bakımını yapacak? Senior DS teknik borcun farkında olmak, kabul etmek ve önceliklendirmek zorundadır.
+
+### 4 Borç Türü
+
+| Borç Türü | Semptom | Örnek | Öncelik |
+|-----------|---------|-------|---------|
+| **Kod borcu** | Copy-paste kod, sihirli sayılar, test yok | `threshold = 0.47` hardcoded | Orta |
+| **Data borcu** | Belgelenmemiş feature mühendisliği, eskiyen pipeline | "Bu sütun ne anlama geliyor?" sorusu | Yüksek |
+| **Model borcu** | Eski model hâlâ prod'da, neden seçildiği bilinmiyor | "Bu modeli kim eğitti?" sorusu | Yüksek |
+| **Dokümantasyon borcu** | Model card yok, karar tarihi yok, varsayımlar yazılı değil | Yeni katılan DS bir haftayı anlamaya harcar | Kritik |
+
+### Borç Quadrant'ı
+
 ```
-Teknik borç türleri (ML özelinde):
+                    ACİL
+                      │
+      ┌───────────────┼───────────────┐
+      │  HEMEN YAP    │   BUGÜN YAP   │
+      │               │               │
+ÖNEMSİZ─────────────── ────────────ÖNEMLİ
+      │               │               │
+      │  PLANLA       │   TAKIBE AL   │
+      │               │               │
+      └───────────────┼───────────────┘
+                      │
+                  ACIL DEĞİL
+```
 
-1. Entangled features: Her şey her şeyle karışık
-   → Feature dependency graph çiz, izole et
+| Quadrant | Eylem | Örnek |
+|----------|-------|-------|
+| Önemli + Acil | Hemen yap | Production'da çöken data pipeline |
+| Önemli + Acil Değil | Sprint'e al | Model card eksikliği |
+| Önemsiz + Acil | Delege et veya geç | Eski notebook formatı |
+| Önemsiz + Acil Değil | Backlog'a at | Test coverage %60 → %80 |
 
-2. Undocumented decisions: "Bu neden böyle?"
-   → ADR yaz, docstring ekle
+### Borç Azaltma Stratejileri
 
-3. Data debt: Pipeline güvenilmez, monitoring yok
-   → Data validation (Pandera/Great Expectations) ekle
-   → Drift monitoring kur
+```python
+# Teknik borç takibi için basit yaklaşım
+# Her sprint'te "borç bütçesi" ayır
 
-4. Dependency debt: Eski kütüphane
-   → uv/pip-audit ile dependency scanner
-   → Major version kırılımlarını takip et
+SPRINT_KAPASITESI = 40  # story point
+OZELLIK_PUANI = 30      # yeni özellik
+BORCN_PUANI = 10        # teknik borç (%25 kural)
 
-5. Test borcu: Test yok
-   → Önce kritik path test, sonra genişlet
-   → %70 coverage hedefi yeterli başlangıç
+# Yaygın "borç günü" uygulaması:
+# Her quarter'ın son sprint'inde %100 borç azaltmaya odaklan
+```
+
+```python
+# Kod borcunun ölçülmesi
+import ast
+import pathlib
+
+def count_magic_numbers(filepath: str) -> list[tuple]:
+    """Hardcoded sihirli sayıları bul."""
+    tree = ast.parse(pathlib.Path(filepath).read_text())
+    magic_numbers = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, (int, float)):
+                if node.value not in {0, 1, -1, 2, 100}:  # "normal" sayılar hariç
+                    magic_numbers.append((node.lineno, node.value))
+
+    return magic_numbers
+
+# Kullanım:
+# issues = count_magic_numbers("src/model.py")
+# print(f"Sihirli sayı sayısı: {len(issues)}")
 ```
 
 ```python
@@ -605,6 +790,15 @@ def refactor_example():
     result = np.mean(x[x > 0] * 2)
     return result
 ```
+
+> **Senior Notu:** "Teknik borcu sıfıra indireceğiz" hedefi gerçekçi değil. Hedef: borcu *sürdürülebilir seviyede* tutmak. İyi bir kural: sprint kapasitesinin **%20–25'ini** her zaman borç azaltmaya ayır. Sıfır borç harcaması → birikim → büyük refactor kararı → projeyi 2 haftaya durdurma ikilemi.
+>
+> En iyi borç önleme: "Definition of Done"a şunları ekle:
+> - [ ] Yeni model → model card yazıldı
+> - [ ] Yeni feature → dokümantasyon güncellendi
+> - [ ] Yeni pipeline → README'de çalıştırma adımları var
+
+> **Sektör Notu (2026):** Veri borcu (data debt) giderek daha kritik hale geliyor. LLM'lerle birlikte "prompt borcu" (belgelenmemiş prompt değişiklikleri) yeni borç türü olarak öne çıkıyor. Büyük şirketlerde "ML Platform" ekiplerinin temel görevi bu borçları ekosistem düzeyinde yönetmek.
 
 ---
 

@@ -641,6 +641,9 @@ pre {
     margin: 1em 0 1.2em;
     border-top: 3px solid #3b82f6;
     border-bottom: 1px solid #1e293b;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 code {
@@ -1002,6 +1005,9 @@ def main():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Veri Bilimci Yol Haritası">
+<meta name="description" content="Türkçe kapsamlı veri bilimi öğrenme rehberi — 0'dan Senior'a">
+<meta name="keywords" content="veri bilimi, makine öğrenmesi, MLOps, Python, SQL, derin öğrenme">
 <title>Veri Bilimci Yol Haritası</title>
 </head>
 <body>

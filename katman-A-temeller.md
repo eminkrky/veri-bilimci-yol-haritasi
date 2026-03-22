@@ -325,6 +325,135 @@ features = (
 
 > Polars, Arrow columnar format ve multi-thread paralelizm sayesinde özellikle 1 GB+ veri setlerinde parlıyor. <1 GB veri için fark ihmal edilebilir — Pandas'ın ekosistem desteği daha geniş.
 
+### Pandas vs Polars — 2026 Seçim Rehberi
+
+#### Sezgisel Açıklama
+
+Pandas Python'ın veri bilimi standardı — 2008'den beri. Polars ise 2021'de Rust ile yeniden yazıldı: Pandas API'sine benziyor ama çok çekirdekli (multi-threaded) çalışıyor, memory'yi daha verimli kullanıyor. 2026 itibarıyla yeni projelerde hangisini seç?
+
+#### Yan Yana Kod Karşılaştırması
+
+```python
+import pandas as pd
+import polars as pl
+
+# --- VERİ OKUMA ---
+# Pandas
+df_pd = pd.read_csv("data.csv")
+
+# Polars (eager - hemen çalışır)
+df_pl = pl.read_csv("data.csv")
+
+# Polars (lazy - sorgu planı oluşturur, collect() ile çalıştırır)
+df_lazy = pl.scan_csv("data.csv")  # büyük dosyalar için tercih et
+
+
+# --- FİLTRELEME ---
+# Pandas
+sonuc_pd = df_pd[df_pd["yas"] > 30]
+
+# Polars
+sonuc_pl = df_pl.filter(pl.col("yas") > 30)
+
+
+# --- GRUPLAMA ---
+# Pandas
+ozet_pd = df_pd.groupby("sehir")["gelir"].mean().reset_index()
+
+# Polars
+ozet_pl = df_pl.group_by("sehir").agg(pl.col("gelir").mean())
+
+
+# --- YENİ KOLON OLUŞTURMA ---
+# Pandas
+df_pd["gelir_log"] = df_pd["gelir"].apply(lambda x: x ** 0.5)  # yavaş
+
+# Polars (vectorized, çok daha hızlı)
+df_pl = df_pl.with_columns(
+    pl.col("gelir").sqrt().alias("gelir_log")
+)
+
+
+# --- JOIN ---
+# Pandas
+sonuc_pd = df_pd.merge(diger_df, on="musteri_id", how="left")
+
+# Polars
+sonuc_pl = df_pl.join(diger_pl, on="musteri_id", how="left")
+
+
+# --- ZINCIRLEME (method chaining) ---
+# Pandas (verbose)
+df_pd_clean = df_pd[df_pd["yas"] > 18]
+df_pd_clean = df_pd_clean.groupby("sehir")["gelir"].mean().reset_index()
+df_pd_clean = df_pd_clean.rename(columns={"gelir": "ort_gelir"})
+
+# Polars (clean chaining)
+df_pl_clean = (
+    df_pl
+    .filter(pl.col("yas") > 18)
+    .group_by("sehir")
+    .agg(pl.col("gelir").mean().alias("ort_gelir"))
+    .sort("ort_gelir", descending=True)
+)
+```
+
+#### Hız ve Bellek Karşılaştırması (Pratik Rehber)
+
+| Veri Boyutu | Pandas | Polars | Öneri |
+|-------------|--------|--------|-------|
+| < 100 MB | Hızlı | Hızlı | Pandas (daha geniş ekosistem) |
+| 100 MB – 2 GB | Yavaşlayabilir | Hızlı | Polars tercih et |
+| 2 GB – 50 GB | Bellek sorunu | Lazy API ile verimli | Polars (lazy scan) |
+| > 50 GB | Çöker | Zorlanır | DuckDB veya Spark |
+
+#### Karar Rehberi
+
+```
+Yeni proje mi?
+├── Evet → Polars tercih et (2026 standardı yükseliyor)
+│
+└── Hayır (mevcut Pandas kodu var)
+    ├── Kritik performans sorunu var mı?
+    │   ├── Evet → Darboğaz noktalarını Polars'a taşı
+    │   └── Hayır → Pandas'ta kal, boşuna yeniden yazma
+    │
+    └── Yeni pipeline yazılıyor mu?
+        ├── Büyük veri (>500MB) → Polars lazy API
+        └── Küçük veri → İkisi de OK, Polars öğren
+```
+
+**Polars'ta sık karşılaşılan tuzaklar:**
+```python
+# ❌ Polars'ta .apply() kullanma (Pandas alışkanlığı)
+df_pl.with_columns(
+    pl.col("gelir").apply(lambda x: x * 1.18)  # yavaş, vectorize değil
+)
+
+# ✅ Polars expression API kullan
+df_pl.with_columns(
+    (pl.col("gelir") * 1.18).alias("gelir_kdv")  # hızlı, paralel
+)
+
+# ❌ Pandas gibi iterasyon
+for row in df_pl.iter_rows():  # çok yavaş
+    ...
+
+# ✅ Vectorized operation
+result = df_pl.select(pl.col("gelir") * 1.18)  # hızlı
+```
+
+> **Senior Notu:** 2026'da "Pandas vs Polars" tartışması "NumPy vs Pandas" tartışmasını andırıyor — geçiş kademeli, her ikisi de hayatta kalacak. Pratikte: yeni projede Polars, eski büyük kod tabanında Pandas. Polars'ın `polars.interchange` modülü sayesinde ikisi arasında veri aktarımı kolaylaştı:
+> ```python
+> # Polars → Pandas (gerekirse)
+> df_pandas = df_polars.to_pandas()
+> # Pandas → Polars
+> df_polars = pl.from_pandas(df_pandas)
+> ```
+> Her iki kütüphaneyi de bilen DS 2026'da avantajlı.
+
+> **Sektör Notu (2026):** Polars 1.0 Haziran 2024'te çıktı ve API stabilitesi garantilendi. Hugging Face, Ruff, Pydantic gibi Rust tabanlı araçların yaygınlaşmasıyla birlikte Polars de data stack'in standart parçası olmaya yaklaşıyor. DuckDB ile de çok iyi entegre olur: DuckDB SQL sorgusu → Polars DataFrame doğrudan döner.
+
 ### DuckDB — SQL ile Yerel Analitik
 
 ```python
@@ -1016,11 +1145,11 @@ Bir ML pipeline'ında model eğitim verisi her gece güncelleniyor. Geçen hafta
 | Konu | İlgili Katman | Dosya |
 |------|--------------|-------|
 | Büyük veri işleme (Spark, Dask) | Katman H | `katman-H-buyuk-veri.md` |
-| Data pipeline orkestrasyon (Airflow, Prefect) | Katman E | `katman-E-data-pipeline.md` |
-| Data validation + pipeline entegrasyonu | Katman E | `katman-E-data-pipeline.md` |
-| Feature engineering (ileri seviye) | Katman B | `katman-B-ml-temelleri.md` |
+| Data pipeline orkestrasyon (Airflow, Prefect) | Katman E | `katman-E-mlops.md` |
+| Data validation + pipeline entegrasyonu | Katman E | `katman-E-mlops.md` |
+| Feature engineering (ileri seviye) | Katman B | `katman-B-klasik-ml.md` |
 | DuckDB/Polars ile büyük ölçek analitik | Katman H | `katman-H-buyuk-veri.md` |
-| A/B testi istatistik detayları | Katman D | `katman-D-deney-tasarimi.md` |
+| A/B testi istatistik detayları | Katman C | `katman-C-deney-nedensellik.md` |
 
 ---
 

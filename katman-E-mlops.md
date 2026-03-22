@@ -956,6 +956,435 @@ def train(config_path):
 
 ---
 
+## E.9 Production Monitoring — Prometheus & Grafana
+
+### Sezgisel Açıklama
+
+Bir uçağı enstrümansız uçurmayı düşün: hız, yükseklik, yakıt göstergelerin yok. Modelini production'a aldıktan sonra izlemezsen aynı kör uçuşu yapıyorsun. Prometheus metrikleri toplar, Grafana görselleştirir — model "kokpiti" bu ikili.
+
+### Prometheus ile ML Metrikleri
+
+```python
+# pip install prometheus-client
+from prometheus_client import Counter, Histogram, Gauge, start_http_server
+import time
+
+# Metrik tanımları
+PREDICTION_COUNTER = Counter(
+    "model_predictions_total",
+    "Toplam tahmin sayısı",
+    ["model_name", "status"]  # label'lar
+)
+PREDICTION_LATENCY = Histogram(
+    "model_prediction_latency_seconds",
+    "Tahmin gecikme süresi (saniye)",
+    buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0]
+)
+DRIFT_SCORE = Gauge(
+    "model_drift_score",
+    "PSI drift skoru (0=stabil, >0.2=kritik)",
+    ["feature_name"]
+)
+MODEL_ACCURACY = Gauge(
+    "model_accuracy_current",
+    "Canlı model doğruluğu (rolling 24h)",
+    ["model_name"]
+)
+
+def predict_with_metrics(model, features, model_name="churn_v2"):
+    start = time.time()
+    try:
+        prediction = model.predict(features)
+        PREDICTION_COUNTER.labels(model_name=model_name, status="success").inc()
+        return prediction
+    except Exception as e:
+        PREDICTION_COUNTER.labels(model_name=model_name, status="error").inc()
+        raise
+    finally:
+        PREDICTION_LATENCY.observe(time.time() - start)
+```
+
+### FastAPI + Prometheus Entegrasyonu
+
+```python
+from fastapi import FastAPI
+from prometheus_client import make_asgi_app
+import prometheus_client
+
+app = FastAPI()
+
+# /metrics endpoint ekle
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
+
+@app.post("/predict")
+async def predict(data: dict):
+    with PREDICTION_LATENCY.time():
+        result = predict_with_metrics(model, data["features"])
+    return {"prediction": result.tolist()}
+```
+
+### Docker Compose ile İzleme Stack'i
+
+```yaml
+# docker-compose.monitoring.yml
+version: "3.8"
+services:
+  ml-api:
+    build: .
+    ports: ["8000:8000"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_storage:/var/lib/grafana
+
+volumes:
+  grafana_storage:
+```
+
+```yaml
+# prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "ml-api"
+    static_configs:
+      - targets: ["ml-api:8000"]
+    metrics_path: "/metrics"
+```
+
+### Alert Kuralları
+
+```yaml
+# alerts.yml — Prometheus alerting rules
+groups:
+  - name: ml_model_alerts
+    rules:
+      - alert: ModelAccuracyDrop
+        expr: model_accuracy_current < 0.75
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Model doğruluğu kritik seviyeye düştü"
+          description: "{{ $labels.model_name }} modeli 5 dakikadır %75 altında"
+
+      - alert: HighPredictionLatency
+        expr: histogram_quantile(0.95, model_prediction_latency_seconds) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P95 gecikme 500ms üzerinde"
+
+      - alert: HighDriftScore
+        expr: model_drift_score > 0.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.feature_name }} feature'ında ciddi drift"
+```
+
+> **Senior Notu:** İzlenecek metrikler iki katmanda düşünülmeli:
+> - **Business metrikleri:** Revenue per prediction, conversion rate, customer impact (bunlar en önemli — ML metriği iyiyken business metriği kötüleşebilir)
+> - **Teknik metrikleri:** Latency (p50/p95/p99), error rate, memory/CPU, drift score
+>
+> Pratik kural: Grafana'da 5 dashboard'dan fazlası varsa odak dağılır. Tek ekran: accuracy trend + latency trend + drift alert + error rate.
+
+> **Sektör Notu (2026):** Prometheus + Grafana stack'i ML izleme için sektör standardı. Alternatif: Datadog ML Monitoring ($$$), Arize Phoenix (LLM için güçlü), W&B (training + serving). Açık kaynak yolunda Prometheus + Evidently (drift) + Grafana üçlüsü en yaygın seçim.
+
+---
+
+## E.10 Model Versioning ve Lifecycle Yönetimi
+
+### Sezgisel Açıklama
+
+Bir yazılım ekibi "hangi kod versiyonu production'da?" sorusunu her zaman yanıtlayabilir — git log yeter. ML'de ise "hangi model, hangi veriyle, hangi hiperparametrelerle eğitildi?" sorusu cevaplanabilir olmalı. Model registry bu sorunun cevabı.
+
+### MLflow Model Registry — Tam Workflow
+
+```python
+import mlflow
+import mlflow.sklearn
+from mlflow.tracking import MlflowClient
+
+# 1. Model kaydet (training sonrası)
+with mlflow.start_run(run_name="churn_lgbm_v3") as run:
+    model = train_model(X_train, y_train)
+
+    # Metrikler logla
+    mlflow.log_metrics({
+        "auc": evaluate_auc(model, X_test, y_test),
+        "f1": evaluate_f1(model, X_test, y_test),
+        "calibration_error": calibration_error(model, X_test, y_test)
+    })
+
+    # Parametreler logla
+    mlflow.log_params(model.get_params())
+
+    # Modeli kaydet
+    mlflow.sklearn.log_model(
+        model,
+        artifact_path="model",
+        registered_model_name="churn-predictor",  # registry'e kayıt
+        input_example=X_train[:5]
+    )
+
+run_id = run.info.run_id
+print(f"Run ID: {run_id}")
+```
+
+```python
+# 2. Model Registry: Staging → Production geçişi
+client = MlflowClient()
+
+# En son versiyonu bul
+latest_versions = client.get_latest_versions(
+    "churn-predictor", stages=["None"]
+)
+version = latest_versions[0].version
+
+# Staging'e al (QA testi için)
+client.transition_model_version_stage(
+    name="churn-predictor",
+    version=version,
+    stage="Staging",
+    archive_existing_versions=False
+)
+
+# Testler geçtikten sonra Production'a al
+client.transition_model_version_stage(
+    name="churn-predictor",
+    version=version,
+    stage="Production",
+    archive_existing_versions=True  # eski production'ı archive'a gönder
+)
+
+# Servis katmanında her zaman "Production" modelini yükle
+model = mlflow.pyfunc.load_model("models:/churn-predictor/Production")
+```
+
+### Champion/Challenger Pattern
+
+```python
+import random
+from typing import Literal
+
+def champion_challenger_predict(
+    features,
+    champion_model,
+    challenger_model,
+    challenger_traffic: float = 0.1  # %10 trafik challenger'a
+) -> dict:
+    """
+    Champion: mevcut production modeli
+    Challenger: test edilen yeni model
+    Her iki modelin tahminini logla, sadece champion'ı sun.
+    """
+    use_challenger = random.random() < challenger_traffic
+    active_model = "challenger" if use_challenger else "champion"
+
+    # Her iki modeli çalıştır (shadow mode)
+    champion_pred = champion_model.predict(features)
+    challenger_pred = challenger_model.predict(features)
+
+    # İkisini de logla (analiz için)
+    log_predictions({
+        "champion": champion_pred,
+        "challenger": challenger_pred,
+        "served": active_model,
+        "timestamp": time.time()
+    })
+
+    # Sadece seçilen modelin tahminini sun
+    return {
+        "prediction": challenger_pred if use_challenger else champion_pred,
+        "model": active_model
+    }
+```
+
+### Shadow Deployment
+
+```
+Shadow Deployment Akışı:
+
+Kullanıcı isteği
+       ↓
+ Champion Model ─────────────────── Kullanıcıya yanıt (100%)
+       ↓
+ Challenger Model ──── Log (0% kullanıcıya, sadece kayıt)
+       ↓
+ Karşılaştırma paneli → Challenger daha iyi? → Promote
+```
+
+> **Senior Notu:** Model registry olmayan ekiplerde sık karşılaşılan senaryo: "Production'daki model kim tarafından, ne zaman, hangi veriyle eğitildi?" sorusuna kimse cevap veremez. Bu durum hem debug'ı imkânsız kılar hem de GDPR/denetim gereksinimlerini karşılamaz.
+>
+> Minimum viable model registry için bile şunları kaydet: model artifact + training data hash + feature list + evaluation metrics + deployment timestamp. MLflow bu beşini ücretsiz sağlar.
+
+> **Sektör Notu (2026):** MLflow model registry sektör standardı (Databricks entegrasyonu ile güçlendi). Alternatifler: W&B Model Registry (deneysel + production tek yerde), Vertex AI Model Registry (GCP), SageMaker Model Registry (AWS). Açık kaynak tercihinde MLflow önce.
+
+---
+
+## E.11 LLMOps — LLM'leri Production'da Yönetme
+
+### Sezgisel Açıklama
+
+Klasik ML modelinin çıktısı sayısal: 0.87 churn skoru. Doğru mu yanlış mı? Gerçek değerle karşılaştır. LLM'nin çıktısı metin: "Merhaba! Size nasıl yardımcı olabilirim?" — bu iyi mi kötü mü? Subjektif. LLMOps, bu öznel çıktıları ölçülebilir kılma sanatı.
+
+### Geleneksel MLOps vs LLMOps
+
+| Kriter | Klasik MLOps | LLMOps |
+|--------|-------------|---------|
+| **Çıktı tipi** | Sayı / sınıf | Metin (doğası gereği belirsiz) |
+| **Başarı ölçütü** | AUC, F1, RMSE | Faithfulness, relevancy, hallucination rate |
+| **Retraining** | Veri drift'i tetikler | Prompt güncelleme çoğu zaman yeterli |
+| **Monitoring** | Metrik izleme | Trace + eval + cost tracking |
+| **Gecikme bütçesi** | ms'ler | 1–10 saniye (kabul edilebilir) |
+| **En büyük risk** | Data drift, concept drift | Hallucination, jailbreak, PII sızıntısı |
+
+### Langfuse ile LLM İzleme
+
+```python
+# pip install langfuse openai
+from langfuse import Langfuse
+from langfuse.decorators import observe, langfuse_context
+
+langfuse = Langfuse(
+    public_key="pk-...",
+    secret_key="sk-...",
+    host="https://cloud.langfuse.com"  # veya self-hosted
+)
+
+@observe()  # her çağrıyı otomatik logla
+def generate_response(user_question: str, context: str) -> str:
+    from openai import OpenAI
+    client = OpenAI()
+
+    # Prompt metadata ekle
+    langfuse_context.update_current_trace(
+        name="rag-query",
+        metadata={"user_id": "u123", "source": "chatbot"}
+    )
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": f"Context: {context}"},
+            {"role": "user", "content": user_question}
+        ]
+    )
+
+    answer = response.choices[0].message.content
+
+    # Kullanıcı skoru ekle (feedback loop)
+    langfuse_context.score_current_trace(
+        name="user-feedback",
+        value=None  # kullanıcı rating geldiğinde doldurulur
+    )
+
+    return answer
+
+# Langfuse dashboard'da görürsün:
+# - Her trace: input → output → latency → token cost
+# - Günlük/haftalık cost trend
+# - Hangi prompt versiyonu daha iyi?
+```
+
+### LLM Evaluation — RAGAS Metrikleri
+
+```python
+# pip install ragas datasets
+from ragas import evaluate
+from ragas.metrics import (
+    faithfulness,          # Context'e sadık mı? (hallucination ters ölçüsü)
+    answer_relevancy,      # Soruyla ilgili mi?
+    context_precision,     # Retrieve edilen context kaliteli mi?
+    context_recall         # Gerekli bilgi context'te var mıydı?
+)
+from datasets import Dataset
+
+# Test verisi
+test_data = {
+    "question": ["Python'da liste comprehension nedir?"],
+    "answer": ["Liste comprehension, kısa söz dizimiyle liste oluşturma yöntemidir."],
+    "contexts": [["Python'da [x for x in range(10)] sözdizimi..."]],
+    "ground_truth": ["Python'da [expr for item in iterable] formatında liste oluşturma."]
+}
+
+dataset = Dataset.from_dict(test_data)
+result = evaluate(dataset, metrics=[faithfulness, answer_relevancy, context_precision, context_recall])
+
+print(result)
+# {'faithfulness': 0.95, 'answer_relevancy': 0.87,
+#  'context_precision': 0.91, 'context_recall': 0.83}
+```
+
+### Prompt Versioning
+
+```python
+# Prompt'ları kod gibi versiyonla
+import json
+from pathlib import Path
+from datetime import datetime
+
+PROMPTS_DIR = Path("prompts/")
+
+def save_prompt_version(name: str, template: str, metadata: dict) -> str:
+    """Prompt'u versiyonlayarak kaydet."""
+    version = datetime.now().strftime("%Y%m%d_%H%M%S")
+    prompt_data = {
+        "name": name,
+        "version": version,
+        "template": template,
+        "metadata": metadata,  # author, purpose, test_score
+        "created_at": datetime.now().isoformat()
+    }
+
+    path = PROMPTS_DIR / f"{name}_{version}.json"
+    path.write_text(json.dumps(prompt_data, ensure_ascii=False, indent=2))
+    return version
+
+def load_prompt(name: str, version: str = "latest") -> str:
+    """En güncel veya belirli versiyonu yükle."""
+    if version == "latest":
+        files = sorted(PROMPTS_DIR.glob(f"{name}_*.json"))
+        path = files[-1]  # en yeni
+    else:
+        path = PROMPTS_DIR / f"{name}_{version}.json"
+
+    return json.loads(path.read_text())["template"]
+
+# Kullanım:
+save_prompt_version(
+    name="rag_system_prompt",
+    template="Sen yardımcı bir asistansın. Verilen context dışına çıkma.\n\nContext: {context}\n\nSoru: {question}",
+    metadata={"author": "team", "ragas_faithfulness": 0.95}
+)
+```
+
+> **Senior Notu:** LLM'leri izlerken en kritik üç şey:
+> 1. **Cost tracking:** Token başına maliyet hızla artabilir. Günlük budget alert kur.
+> 2. **Latency SLA:** Kullanıcı toleransı ortalama 3 saniye. P95 > 5s ise streaming'e geç.
+> 3. **Hallucination rate:** RAGAS faithfulness < 0.8 → RAG pipeline'ını incele (chunking? retrieval quality?).
+>
+> Tip: Production'da LLM output'larının %5–10'unu manuel değerlendir. Otomatik metrikler yetmez — insan gözetimi şart.
+
+> **Sektör Notu (2026):** LLMOps araçları hızla olgunlaşıyor. **Langfuse** (açık kaynak, self-hostable) en popüler. Alternatifler: **Arize Phoenix** (hallucination detection güçlü), **W&B Weave** (W&B ekosistemindeyseniz), **Helicone** (basit, proxy tabanlı). Büyük şirketlerde kendi LLM gateway'leri yaygınlaşıyor (cost control + privacy).
+
+---
+
 <div class="nav-footer">
   <span><a href="#file_katman_D_derin_ogrenme">← Önceki: Katman D — Derin Öğrenme</a></span>
   <span><a href="#toc">↑ İçindekiler</a></span>

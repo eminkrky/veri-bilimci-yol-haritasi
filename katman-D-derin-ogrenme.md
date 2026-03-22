@@ -1828,6 +1828,122 @@ for epoch in range(200):
 
 ---
 
+## D.8 Fine-tuning mi, RAG mı? Karar Rehberi
+
+### Sezgisel Açıklama
+
+Şirket içi belgelere cevap verebilen bir chatbot istiyorsun. İki seçenek var: LLM'i şirket bilgileriyle yeniden eğit (fine-tuning) ya da sorguya özel belgeleri bağlam olarak ver (RAG). Hangisi? Cevap: "bağlıdır" — ama bu karar çerçevesiyle netleştir.
+
+### Karar Ağacı
+
+```
+Görev tipi nedir?
+│
+├── Yeni/güncel bilgi eklemek (ör: şirket dokümanları, son haberler)
+│     → RAG  ✅  (bilgi güncellenebilir, model eğitmek gerekmez)
+│
+├── Özel ton/format/domain dil (ör: tıbbi jargon, hukuki yazı stili)
+│     → Fine-tuning  ✅  (model davranışı kalıcı değişir)
+│
+├── Gizli/özel veri (ör: hasta kayıtları, ticari sırlar)
+│     → Fine-tuning + local model  ✅  (veri dışarı çıkmaz)
+│     → veya self-hosted RAG (Ollama + ChromaDB)
+│
+├── Hız ve maliyet kritik (ör: milyonlarca istek/gün)
+│     → Küçük fine-tuned model  ✅  (GPT-4 yerine fine-tuned GPT-3.5/Mistral-7B)
+│
+└── En iyi kalite gerekiyor (ör: enterprise chatbot)
+      → RAG + Fine-tuning  ✅  (pahalı ama en güçlü)
+```
+
+### Karşılaştırma Tablosu
+
+| Kriter | RAG | Fine-tuning | İkisi Birden |
+|--------|-----|-------------|--------------|
+| **Kurulum maliyeti** | Düşük–Orta | Yüksek (GPU saati) | Çok yüksek |
+| **Çalışma maliyeti** | Orta (retrieval + LLM) | Düşük (küçük model) | Orta |
+| **Bilgi güncelleme** | Kolay (vektör DB güncelle) | Zor (yeniden eğit) | Kolay |
+| **Hallucination riski** | Düşük (context var) | Orta (modele "yerleşik") | En düşük |
+| **Gecikme (latency)** | Yüksek (+retrieval) | Düşük | Yüksek |
+| **Setup süresi** | 1–2 hafta | 2–6 hafta | 6–12 hafta |
+| **Özel dil/format** | Zayıf | Güçlü | Güçlü |
+
+### Ne Zaman Ne Kullan?
+
+**RAG tercih et:**
+- Bilgi sık değişiyorsa (haber, doküman, ürün kataloğu)
+- Kaynak belirtmek önemliyse ("Bu cevap şu belgeden alındı")
+- Bütçe kısıtlıysa ve GPT-4/Claude API erişimın varsa
+
+**Fine-tuning tercih et:**
+- Model belirli bir yazı stili öğrenmeli (hukuki, tıbbi, brand voice)
+- Kısa, yapılandırılmış çıktılar (JSON, SQL, kod) üretmeli
+- Inference hızı ve maliyeti çok önemliyse
+
+**İkisini birden tercih et (production standart):**
+- Domain-specific fine-tuned model + şirket bilgisi için RAG
+- Örnek: Hukuk firması → LLM hukuki dil için fine-tune edilmiş + dava dosyaları RAG ile
+
+### RAGAS ile RAG Pipeline Değerlendirme
+
+```python
+# pip install ragas datasets
+from ragas import evaluate
+from ragas.metrics import (
+    faithfulness,        # Cevap context'e sadık mı? (1.0 = mükemmel)
+    answer_relevancy,    # Cevap soruyla ilgili mi?
+    context_precision,   # Retrieve edilen chunk'lar alakalı mı?
+    context_recall       # Gerekli bilgi context'te var mıydı?
+)
+from datasets import Dataset
+
+# RAG pipeline'ını test verisiyle değerlendir
+test_set = {
+    "question": [
+        "LightGBM'de early stopping nasıl kullanılır?",
+        "SHAP değerleri neyi ölçer?"
+    ],
+    "answer": [
+        "LightGBM'de early_stopping_rounds parametresi ile...",
+        "SHAP değerleri her feature'ın tahmine katkısını..."
+    ],
+    "contexts": [
+        ["LightGBM training parametreleri: num_leaves, max_depth, early_stopping_rounds..."],
+        ["SHAP (SHapley Additive exPlanations) model yorumlanabilirliği için..."]
+    ],
+    "ground_truth": [
+        "early_stopping_rounds=50 ile validation loss düzelmeyi durdurursa eğitim biter.",
+        "SHAP değerleri, her feature'ın belirli bir tahmine katkısını Shapley değerleriyle ölçer."
+    ]
+}
+
+dataset = Dataset.from_dict(test_set)
+result = evaluate(
+    dataset,
+    metrics=[faithfulness, answer_relevancy, context_precision, context_recall]
+)
+print(result)
+# Örnek çıktı:
+# {'faithfulness': 0.94, 'answer_relevancy': 0.88,
+#  'context_precision': 0.90, 'context_recall': 0.85}
+
+# İyileştirme önerileri:
+# faithfulness < 0.8  → chunking stratejisini gözden geçir
+# context_recall < 0.7 → retrieval k sayısını artır veya re-ranking ekle
+# answer_relevancy < 0.8 → system prompt'u güçlendir
+```
+
+> **Senior Notu:** RAG vs Fine-tuning kararını sadece teknik değil iş gereksinimleriyle ver:
+> - "Bu bilgi ne kadar sıklıkla değişiyor?" → sık değişiyorsa RAG
+> - "Bu model 2 yıl kullanılacak mı?" → fine-tuned model zamanla eskir, RAG daha sürdürülebilir
+> - "Cevapların kaynağa atıf yapması gerekiyor mu?" → RAG zorunlu
+>
+> 2026'da en yaygın pattern: genel GPT-4/Claude API + şirkete özel RAG. Fine-tuning genellikle yalnızca çok yüksek hacim veya çok özel domain için.
+
+> **Sektör Notu (2026):** "Fine-tuning mı RAG mı?" sorusu 2023–2024'te çok tartışıldı. Sonuç: çoğu enterprise uygulama için **RAG ilk adım, fine-tuning optimizasyon adımı**. Ancak küçük, specialized modeller (Mistral-7B, Phi-3) fine-tuning'i çok daha uygun maliyetli hale getirdi. GGUF/llama.cpp ile local çalışan fine-tuned modeller giderek yaygınlaşıyor.
+
+---
+
 <div class="nav-footer">
   <span><a href="#file_katman_C_deney_nedensellik">← Önceki: Katman C — Deney/Nedensellik</a></span>
   <span><a href="#toc">↑ İçindekiler</a></span>

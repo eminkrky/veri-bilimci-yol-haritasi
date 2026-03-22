@@ -1183,6 +1183,15 @@ def iv_with_statsmodels():
 
 > **Not:** `statsmodels.sandbox.regression.gmm.IV2SLS` sandbox modülünde yer alır ve API'si `linearmodels` kadar ergonomik değildir. Production kalitesinde IV analizi için `linearmodels` tercih edilir; ancak mülakat veya hızlı prototip için `statsmodels` yeterlidir.
 
+> **Zayıf Araç Tuzağı (Weak Instrument):** İki Aşamalı En Küçük Kareler (2SLS) ile IV uygularken F-istatistiğine dikkat et. Kural: **Birinci aşama F-stat < 10 ise araç zayıftır** ve 2SLS tahminleri OLS'den daha fazla bias taşıyabilir. Zayıf araçta LIML (Limited Information Maximum Likelihood) 2SLS'ye kıyasla daha kararlı sonuç verir.
+> ```python
+> from linearmodels.iv import IV2SLS, IVLIML
+> # Zayıf araç testi
+> res = IV2SLS(y, X_exog, X_endog, instruments).fit()
+> print(res.first_stage)  # F-stat'a bak, < 10 ise LIML dene
+> res_liml = IVLIML(y, X_exog, X_endog, instruments).fit()
+> ```
+
 ### Front-Door Criterion (Ön Kapı Kriteri)
 
 **Kavramsal açıklama:** Backdoor adjustment (propensity score, DiD vb.) gözlenmeyen confounder varsa çalışmaz. Front-door criterion farklı bir strateji sunar: treatment'tan outcome'a giden **ara mekanizmayı** (mediator) kullanarak nedensel etkiyi tanımla.
@@ -1594,6 +1603,87 @@ Bu sorular gerçek mülakat ve iş senaryolarını yansıtır. Her soruyu yanıt
 - [ ] IV geçerlilik koşullarını (relevance, exclusion, independence) bir örnek üzerinde değerlendirdim
 - [ ] statsmodels IV2SLS alternatifini denedim
 - [ ] Proje-2 (A/B Test Paketi) tamamlandı
+
+---
+
+## C.11 Çoklu Test Düzeltmeleri (Multiple Testing Corrections)
+
+### Sezgisel Açıklama
+
+Bir A/B testi yaptın ve 20 metriği aynı anda inceliyorsun: gelir, tıklama oranı, oturum süresi, bounce rate... Her birinde p < 0.05 arıyorsun. Ama şunu düşün: eğer bütün metrikler aslında eşit dağılmış olsaydı ve 20 ayrı test yapsan, en az 1 tanesinin yanlışlıkla p < 0.05 çıkması ihtimali **%64**'tür. Bu "şanslı kazanç" Tip-I hata enflasyonu — ve büyük A/B test platformlarında başlıca yanılgı kaynağı.
+
+**Formül:**
+Eğer her test α = 0.05 ise ve n bağımsız test yapıyorsan:
+```
+P(en az 1 yanlış pozitif) = 1 - (1 - α)^n
+n=1:   1 - 0.95^1  = 5.0%   ← normal
+n=5:   1 - 0.95^5  = 22.6%  ← dikkatli ol
+n=10:  1 - 0.95^10 = 40.1%  ← tehlikeli
+n=20:  1 - 0.95^20 = 64.2%  ← büyük sorun
+```
+
+### Üç Temel Düzeltme Yöntemi
+
+| Yöntem | Formül | Güç | Ne zaman? |
+|--------|--------|-----|-----------|
+| **Bonferroni** | α_adj = α / n | En düşük | Az test, keşif değil onaylama |
+| **Holm-Bonferroni** | Step-down, sıralı | Orta | Bonferroni'den biraz daha iyi |
+| **Benjamini-Hochberg (BH)** | FDR kontrolü | En yüksek | Çok test, keşif odaklı analiz |
+
+**Özet:** Bonferroni en konservatif (az yanlış pozitif, ama gerçek etkileri de kaçırır). BH en dengeli (yanlış pozitif oranını n'e göre kontrol eder).
+
+### Kod Örneği
+
+```python
+import numpy as np
+from statsmodels.stats.multitest import multipletests
+
+# Senaryo: 12 metrik için A/B test p-değerleri
+metrik_adlari = [
+    "gelir", "tıklama_oranı", "oturum_suresi", "bounce_rate",
+    "sepete_ekle", "odeme_tamamlama", "geri_donus", "nps",
+    "mobil_kullanim", "desktop_kullanim", "email_acilis", "push_tiklama"
+]
+p_values = np.array([
+    0.03, 0.04, 0.08, 0.12, 0.001, 0.89, 0.23, 0.04,
+    0.06, 0.44, 0.02, 0.07
+])
+
+# 3 yöntem karşılaştırması
+for method in ["bonferroni", "holm", "fdr_bh"]:
+    reject, p_adj, _, _ = multipletests(p_values, alpha=0.05, method=method)
+    print(f"\n{method.upper()}:")
+    for metrik, orig_p, adj_p, red in zip(metrik_adlari, p_values, p_adj, reject):
+        if orig_p < 0.05:  # sadece başlangıçta anlamlı görünenleri göster
+            status = "✅ ANLAMLI" if red else "❌ Reddedildi"
+            print(f"  {metrik:20s}: p={orig_p:.3f} → düzeltilmiş p={adj_p:.3f}  {status}")
+```
+
+Beklenen çıktı (örnek):
+```
+BONFERRONI:
+  gelir               : p=0.030 → düzeltilmiş p=0.360  ❌ Reddedildi
+  tıklama_oranı       : p=0.040 → düzeltilmiş p=0.480  ❌ Reddedildi
+  sepete_ekle         : p=0.001 → düzeltilmiş p=0.012  ✅ ANLAMLI
+  nps                 : p=0.040 → düzeltilmiş p=0.480  ❌ Reddedildi
+  email_acilis        : p=0.020 → düzeltilmiş p=0.240  ❌ Reddedildi
+
+FDR_BH:
+  gelir               : p=0.030 → düzeltilmiş p=0.072  ❌ Reddedildi
+  tıklama_oranı       : p=0.040 → düzeltilmiş p=0.080  ❌ Reddedildi
+  sepete_ekle         : p=0.001 → düzeltilmiş p=0.012  ✅ ANLAMLI
+  nps                 : p=0.040 → düzeltilmiş p=0.080  ❌ Reddedildi
+  email_acilis        : p=0.020 → düzeltilmiş p=0.060  ❌ Reddedildi
+```
+
+> **Senior Notu:** A/B testlerinde pratikte şunu yap:
+> 1. **Birincil metrik** (genellikle 1 tane) — hiç düzeltme yapma, önceden belirlenmişti
+> 2. **İkincil metrikler** (guardrail'ler) — Bonferroni veya BH uygula
+> 3. **Keşif analizleri** — BH kullan, bulgular "hipotez üretir", onaylama ayrı teste kalsın
+>
+> Bonferroni'nin A/B testlerde "çok katı" olduğu söylenir çünkü metrikler bağımsız değil (gelir artarsa tıklama da artar). Bağımlı testler için Westfall-Young veya permütasyon tabanlı yöntemler daha doğru ama pratikte BH yeterli.
+
+> **Sektör Notu (2026):** Çoklu test sorunu, büyük tech şirketlerinde (Airbnb, Netflix, Microsoft) A/B platformlarında otomatik olarak çözülüyor. Küçük ekipler için: birincil metriği A/B testi başlamadan **yazılı olarak** belirle. "Test bitti, sonuçlara bak, en iyi görüneni primary metrik seç" yaklaşımı p-hacking'dir.
 
 ---
 
