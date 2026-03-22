@@ -19,14 +19,19 @@
 
 "Büyük veri" ezber etmek için değil, doğru zamanda doğru araç seçmek için öğrenilir.
 
+| Veri Boyutu | Tek Makine RAM | Öneri | Araç |
+|------------|----------------|-------|------|
+| < 1 GB | Belleğe sığar | Pandas veya Polars | pandas / polars |
+| 1–10 GB | Sığar veya zorlanır | Polars lazy scan | polars (scan_parquet) |
+| 10–100 GB | RAM'e sığmaz | Polars OOC veya DuckDB | polars (lazy) / duckdb |
+| 100 GB–1 TB | Kesinlikle sığmaz | Spark local veya Dask | pyspark / dask |
+| > 1 TB | Dağıtık gerekli | Spark cluster | pyspark + cloud |
+
 ```
-Veri boyutu?
-  < 1 GB   → Pandas + DuckDB yeterli
-  1–10 GB  → Polars (lazy, Rust) + DuckDB
-  10–100 GB→ Dask veya PySpark (lokal cluster)
-  > 100 GB → Apache Spark + cloud (Databricks, EMR)
-  Streaming → Kafka + Flink/Spark Structured Streaming
+Streaming → Kafka + Flink/Spark Structured Streaming
 ```
+
+> Polars'ın lazy evaluation özelliği (scan_parquet) RAM'e sığmayan verileri de işleyebilir — önce Polars dene, yetersiz kalırsa Dask/Spark'a geç.
 
 **Kural:** Önce örnekle çalış. Çoğu "büyük veri" problemi, akıllı örnekleme + Parquet ile küçülür.
 
@@ -481,9 +486,15 @@ df = arrow_table.to_pandas()
 
 #### Ne Zaman Hangisi?
 
-- **Delta Lake tercih et:** Databricks ekosistemindeysen, Spark-ağırlıklı iş yükün varsa, streaming-heavy senaryolarda
-- **Iceberg tercih et:** Multi-cloud / vendor-agnostic istiyorsan, çok sayıda partition varsa, Snowflake/Trino/Athena ile çalışıyorsan
-- **UniForm:** Databricks'in UniForm özelliği Delta tablolarını Iceberg client'ları ile okunabilir kılıyor — her iki dünyayı köprülüyor
+> **2024-2025 Sektör Gelişmesi:** Databricks, Apache Iceberg'in yaratıcı şirketi Tabular'ı 2024'te satın aldı. Bu hamle, iki formatın uzun vadede yakınlaşacağına — belki de birleşeceğine — işaret ediyor. UniForm özelliği bu yönde atılmış ilk adım. **Snowflake Polaris Catalog** ise Iceberg'i multi-engine standart olarak benimseyerek Databricks dışındaki tüm büyük platformların Iceberg ekosisteminde buluşmasını pekiştirdi.
+
+**2025 Seçim Kriterleri:**
+
+- **Sadece Spark kullanıyorsanız → Delta Lake:** Spark entegrasyonu daha olgun, streaming-heavy workload'larda avantajlı
+- **Multi-engine (Flink + Trino + Spark) veya vendor-neutral gereksinim → Apache Iceberg:** Tek format, tüm enginelar; partition evolution ve gizli partitioning güçlü avantaj
+- **Databricks müşterisiyseniz → Delta Lake:** Native entegrasyon, MLflow + Feature Store + Serverless SQL ekosistemi ile birlikte kutu dışında çalışır
+- **AWS / Snowflake / Google Cloud + Spark → Iceberg:** Polaris Catalog desteği, Athena ve BigQuery native Iceberg okuma, vendor-lock-in riski yok
+- **UniForm:** Databricks'in UniForm özelliği Delta tablolarını Iceberg client'ları ile okunabilir kılıyor — her iki dünyayı köprülüyor; geçiş döneminde güvenli seçenek
 
 ---
 
@@ -1012,6 +1023,29 @@ s3 = boto3.client("s3",
     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
 )
 ```
+
+### Minimal .env Örneği — Güvenli Yükleme
+
+```python
+# .env dosyası (asla Git'e commit etme!)
+# DB_PASSWORD=supersecret
+# API_KEY=sk-...
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # .env dosyasını yükle
+
+db_password = os.environ.get("DB_PASSWORD")
+api_key = os.environ.get("API_KEY")
+
+if not api_key:
+    raise ValueError("API_KEY environment variable not set")
+
+print("Kimlik bilgileri güvenli şekilde yüklendi ✓")
+```
+
+> **Senior Notu:** Production'da .env kullanma — Vault (HashiCorp), AWS Secrets Manager veya Kubernetes Secrets tercih et. .env sadece yerel geliştirme içindir.
 
 ### .gitignore Uyarısı
 

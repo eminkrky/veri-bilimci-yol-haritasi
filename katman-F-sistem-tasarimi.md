@@ -653,7 +653,7 @@ def create_switchback_schedule(regions: list, n_days: int,
     return schedule
 ```
 
-> **Çapraz referans:** A/B test istatistikleri ve switchback design → [Katman C — İstatistik](katman-C-istatistik.md)
+> **Çapraz referans:** A/B test istatistikleri ve switchback design → [Katman C — İstatistik](katman-C-deney-nedensellik.md)
 
 ---
 

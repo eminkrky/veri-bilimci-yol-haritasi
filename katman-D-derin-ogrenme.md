@@ -132,6 +132,57 @@ def train(model, train_loader, val_loader, n_epochs=50, lr=1e-3, device="cpu"):
 
 > **Senior Notu:** `model.train()` ve `model.eval()` asla unutma — BatchNorm ve Dropout eğitimde farklı davranır. `optimizer.zero_grad()` loop başına koyulmalı. `torch.no_grad()` ile evaluation'da bellek tasarrufu.
 
+### Mixed Precision Training (FP16/BF16)
+
+#### Sezgisel Açıklama
+
+Standart PyTorch eğitimi 32-bit kayan nokta (FP32) kullanır. Mixed precision ise hesaplamaları 16-bit (FP16 veya BF16) yaparken kritik ağırlıkları FP32'de tutar. Sonuç: **GPU belleğini yarıya indirirken ~2× hız artışı**. Modern GPU'larda (A100, RTX 4090) BF16 daha stabil çünkü FP16'dan daha geniş sayı aralığına sahip — overflow riski düşük.
+
+- **FP16:** Hız avantajı büyük, ama küçük sayılarda underflow riski var → GradScaler ile dengelenir
+- **BF16:** Aynı bit genişliği, daha büyük sayı aralığı → Ampere ve üstü GPU'larda tercih et
+- **FP32 master weights:** Optimizer state'leri FP32'de tutulur, hassasiyet korunur
+
+```python
+from torch.amp import autocast, GradScaler
+
+scaler = GradScaler()
+
+for epoch in range(num_epochs):
+    for batch in dataloader:
+        optimizer.zero_grad()
+
+        # FP16 context - otomatik cast
+        with autocast(device_type='cuda', dtype=torch.float16):
+            outputs = model(batch['input_ids'], batch['attention_mask'])
+            loss = criterion(outputs, batch['labels'])
+
+        # Scaled backward pass
+        scaler.scale(loss).backward()
+
+        # Gradient clipping (scaled)
+        scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+
+        # Optimizer step
+        scaler.step(optimizer)
+        scaler.update()
+```
+
+**BF16 kullanımı (Ampere+ GPU):**
+
+```python
+# BF16: GradScaler gerekmez, daha basit
+with autocast(device_type='cuda', dtype=torch.bfloat16):
+    outputs = model(batch['input_ids'], batch['attention_mask'])
+    loss = criterion(outputs, batch['labels'])
+
+loss.backward()
+torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+optimizer.step()
+```
+
+> **Senior Notu:** A100/H100 gibi modern GPU'larda BF16 varsayılan seçim. Eski GPU'larda (V100, RTX 20 serisi) FP16 + GradScaler zorunlu. `torch.compile()` ile birleştirildiğinde ek %10–30 hız kazanımı mümkün. Mixed precision'ı multi-GPU (DDP) ile kullanırken `GradScaler` tüm worker'larda senkronize olmalı — `sync_gradients=True` ayarını kontrol et.
+
 ### Optimizer Karşılaştırması
 
 | Optimizer | Avantaj | Ne Zaman |
@@ -583,7 +634,9 @@ def rag_query(question: str, k: int = 5, vectorstore=vectorstore,
     if rerank:
         # Cross-encoder re-ranking (daha hassas)
         from sentence_transformers import CrossEncoder
-        cross_encoder = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+        # 2025 itibarıyla önerilen model: BAAI/bge-reranker-v2-m3
+        # (cross-encoder/ms-marco-MiniLM-L-6-v2 hâlâ çalışır ama daha düşük kaliteli)
+        cross_encoder = CrossEncoder("BAAI/bge-reranker-v2-m3")
         pairs = [[question, doc.page_content] for doc, _ in retrieved_docs]
         scores = cross_encoder.predict(pairs)
         ranked = sorted(zip(scores, retrieved_docs), reverse=True)
@@ -623,14 +676,119 @@ eval_dataset = {
 
 ### Chunking Stratejileri
 
-| Strateji | Ne Zaman | Avantaj |
-|----------|---------|---------|
-| Fixed-size (500 token, %10 overlap) | Genel amaç | Basit, çalışır |
-| Sentence-based | Kısa belgeler | Anlam bütünlüğü |
-| Semantic chunking | Uzun, yapılı belgeler | En kaliteli |
-| Hierarchical (başlık bazlı) | Teknik dok. | Navigasyon |
+#### Sezgisel Açıklama
 
-> **Senior Notu:** 2025 trendine göre "classical RAG" (fixed chunk + dense retrieval) aşınıyor. Uzun context modelleri (Gemini 1M, Claude 200K) bazı RAG use-case'leri ortadan kaldırıyor. Ama gizlilik gerektiren kurumsal uygulamalarda RAG standart kalıyor.
+Bir belgeyi vektör veritabanına koymadan önce onu parçalara (chunk) bölmek gerekir. Parça boyutu çok küçük olursa bağlam yitirilir; çok büyük olursa retrieval gürültülü olur ve embedding kalitesi düşer. İdeal parça büyüklüğünü bulmak RAG sisteminin başarısını doğrudan etkiler.
+
+Dört ana strateji:
+
+1. **Fixed-size (sabit boyutlu):** Token sayısına göre mekanik bölme. En basit yöntem.
+2. **Recursive character splitting:** Önce paragraf, sonra cümle, sonra kelime sıralamasıyla doğal sınırları koruyarak böler. Çoğu senaryo için en iyi başlangıç.
+3. **Semantic chunking:** Embedding benzerliğine bakarak anlam sınırlarında böler. En kaliteli ama en yavaş.
+4. **Hierarchical (yapı tabanlı):** Markdown/HTML başlıklarını okuyarak belgenin mantıksal yapısını korur.
+
+#### Kod Örneği
+
+```python
+# Kurulum: pip install langchain-text-splitters sentence-transformers
+
+# ── 1. Naive Fixed-Size Chunking ──────────────────────────────────────────
+from langchain_text_splitters import CharacterTextSplitter
+
+fixed_splitter = CharacterTextSplitter(
+    chunk_size=512,       # karakter sayısı (tokena yakın ama aynı değil)
+    chunk_overlap=50,     # örtüşme: bağlam sürekliliği için
+    separator="\n\n",     # önce çift newline'da böl, yoksa tek newline
+)
+chunks_fixed = fixed_splitter.split_text(long_document)
+
+
+# ── 2. Recursive Character Splitting (önerilen başlangıç) ─────────────────
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+recursive_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=512,
+    chunk_overlap=64,         # ~%12 overlap — iyi bir başlangıç
+    length_function=len,
+    separators=["\n\n", "\n", ". ", "! ", "? ", " ", ""],
+    # Sırayla dener: paragraf → satır → cümle → kelime → karakter
+)
+chunks_recursive = recursive_splitter.split_text(long_document)
+
+
+# ── 3. Token-tabanlı (embedding modelle uyumlu) ───────────────────────────
+from langchain_text_splitters import TokenTextSplitter
+
+token_splitter = TokenTextSplitter(
+    chunk_size=256,     # token sayısı (embedding model limitine göre ayarla)
+    chunk_overlap=32,   # %12 overlap
+)
+# text-embedding-3-small: 8192 token limit
+# all-MiniLM-L6-v2: 256 token limit — küçük chunk şart!
+chunks_token = token_splitter.split_text(long_document)
+
+
+# ── 4. Semantic Chunking (anlam sınırlarında böl) ─────────────────────────
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+)
+
+semantic_splitter = SemanticChunker(
+    embeddings,
+    breakpoint_threshold_type="percentile",  # veya "standard_deviation"
+    breakpoint_threshold_amount=95,          # %95'lik dilimde kır
+)
+chunks_semantic = semantic_splitter.split_text(long_document)
+# Not: her chunk için embedding hesaplanır → en yavaş yöntem
+
+
+# ── 5. Hierarchical / Markdown-aware ─────────────────────────────────────
+from langchain_text_splitters import MarkdownHeaderTextSplitter
+
+markdown_splitter = MarkdownHeaderTextSplitter(
+    headers_to_split_on=[
+        ("#", "h1"),
+        ("##", "h2"),
+        ("###", "h3"),
+    ],
+    strip_headers=False,
+)
+md_docs = markdown_splitter.split_text(markdown_document)
+# Her chunk metadata'sında {"h1": "Bölüm", "h2": "Alt Bölüm"} gibi başlık bilgisi taşır
+# Sonrasında RecursiveCharacterTextSplitter ile daha da bölebilirsin
+
+
+# ── 6. Pratik Karşılaştırma Deneyi ───────────────────────────────────────
+def evaluate_chunking(text: str, splitter, name: str):
+    chunks = splitter.split_text(text)
+    sizes = [len(c) for c in chunks]
+    print(f"\n{name}:")
+    print(f"  Toplam chunk: {len(chunks)}")
+    print(f"  Ort. boyut: {sum(sizes)/len(sizes):.0f} karakter")
+    print(f"  Min/Max: {min(sizes)} / {max(sizes)}")
+    return chunks
+```
+
+#### Karşılaştırma Tablosu
+
+| Strateji | Ne Zaman Kullanılır | Avantaj | Dezavantaj |
+|----------|---------------------|---------|------------|
+| Fixed-size (CharacterTextSplitter) | Hızlı prototip | En basit | Cümle ortasında kesilebilir |
+| Recursive character (önerilen) | Genel amaç | Doğal sınırlar, hızlı | Semantic yapıyı bilmez |
+| Token-based | Embedding limiti kritikse | Token sayısı kesin | Hızlı ama kaba |
+| Semantic chunking | Uzun, heterojen belgeler | En iyi anlam bütünlüğü | Yavaş, embedding maliyeti |
+| Hierarchical (Markdown/HTML) | Teknik dok., wiki, kitap | Başlık bağlamı taşır | Yapısız belgede işe yaramaz |
+
+**Pratik Tavsiye:**
+- Başlangıç: `RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=50)` — çoğu durumda %80 doğru sonuç
+- Token sınırlı embedding modellerinde (`all-MiniLM`: 256 token) `TokenTextSplitter(chunk_size=200, chunk_overlap=24)` tercih et
+- Yapılı belgeler (teknik dok., hukuki metin): önce `MarkdownHeaderTextSplitter`, sonra recursive ile alt böl
+- Kalite kritikse semantic chunking dene — ama retrieval hızını ölç
+
+> **Senior Notu:** 2025 trendine göre "classical RAG" (fixed chunk + dense retrieval) aşınıyor. Uzun context modelleri (Gemini 1M, Claude 200K) bazı RAG use-case'lerini ortadan kaldırıyor. Ama gizlilik gerektiren kurumsal uygulamalarda RAG standart kalıyor. Chunk stratejisi seçimini asla sezgiyle bırakma: RAGAS veya manuel LLM-as-judge değerlendirmesiyle A/B test yap. 256–512 token + %10–20 overlap çoğu durumda başlangıç için yeterli; daha sonra bu parametrelerle arama yap.
 
 ---
 
@@ -1323,6 +1481,180 @@ guard = Guard.from_pydantic(output_class=CustomerResponse)
 ```
 
 > **Senior Notu:** Production'da guardrails eklemek latency ekler (50-200ms). Bunu bütçele. Katmanlı yaklaş: hızlı regex filtreleri önce, ağır ML modelleri sonra. 2026 itibarıyla "agent guardrails" (araç çağrısı izinleri, bütçe limitleri) en sıcak konu — ayrıntılar için bkz. **Katman E — Deployment ve Monitoring**. OWASP LLM Top 10'u mutlaka oku.
+
+---
+
+### LLM Agent Frameworks
+
+#### Sezgisel Açıklama
+
+Tek seferlik LLM çağrıları birçok problemi çözer. Ama daha karmaşık görevler için — "bu veriyi analiz et, sonuçlara göre bir araç çağır, sonucu doğrula ve yanıtı formatla" — **agent** yaklaşımı gerekir. Agent, LLM'in araçlara (web arama, kod yürütme, API çağrısı, veritabanı sorgusu) erişebildiği ve çoklu adım yürütebildiği bir döngüdür.
+
+**ReAct (Reason + Act) Döngüsü:**
+
+```
+Kullanıcı görevi
+    │
+    ▼
+[Düşün] → "Bu soruyu yanıtlamak için stok verisine bakmam lazım"
+    │
+    ▼
+[Hareket Et] → tool_call: get_stock_data(ticker="AAPL")
+    │
+    ▼
+[Gözlemle] → {"price": 182.5, "volume": 2.1M, ...}
+    │
+    ▼
+[Düşün] → "Veri geldi. Şimdi analiz edip yanıt yazayım"
+    │
+    ▼
+[Yanıt] → Kullanıcıya son çıktı
+```
+
+Döngü görev tamamlanana ya da maksimum adım sayısına ulaşana kadar devam eder.
+
+#### LangGraph ile Durum Korumalı Agent
+
+LangGraph, agent adımlarını bir **graf** olarak modellendirir. Düğümler LLM veya araç çağrıları, kenarlar koşullu geçişlerdir. Uzun konuşmalarda state (durum) korunur.
+
+```python
+# pip install langgraph langchain-openai
+
+from typing import Annotated, TypedDict
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+import json
+
+# ── Durum tanımı ──────────────────────────────────────────────────────────
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]  # mesaj geçmişi birikir
+
+# ── Araç tanımı ───────────────────────────────────────────────────────────
+@tool
+def search_product_info(query: str) -> str:
+    """Ürün bilgisi ara. Fiyat, stok ve açıklama döner."""
+    # Gerçek implementasyonda DB veya API çağrısı
+    return json.dumps({"product": query, "price": 299, "stock": 15})
+
+@tool
+def calculate_discount(price: float, discount_pct: float) -> str:
+    """İndirimli fiyatı hesapla."""
+    discounted = price * (1 - discount_pct / 100)
+    return f"İndirimli fiyat: {discounted:.2f} TL"
+
+tools = [search_product_info, calculate_discount]
+
+# ── LLM bağlama ───────────────────────────────────────────────────────────
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+llm_with_tools = llm.bind_tools(tools)
+
+# ── Graf düğümleri ────────────────────────────────────────────────────────
+def agent_node(state: AgentState) -> AgentState:
+    """LLM adımı: düşün ve araç çağır veya yanıt ver."""
+    response = llm_with_tools.invoke(state["messages"])
+    return {"messages": [response]}
+
+def tool_node(state: AgentState) -> AgentState:
+    """Araç çağrısı adımı."""
+    from langchain_core.messages import ToolMessage
+    last_message = state["messages"][-1]
+    outputs = []
+    for tool_call in last_message.tool_calls:
+        tool_fn = {t.name: t for t in tools}[tool_call["name"]]
+        result = tool_fn.invoke(tool_call["args"])
+        outputs.append(ToolMessage(content=str(result),
+                                    tool_call_id=tool_call["id"]))
+    return {"messages": outputs}
+
+def should_continue(state: AgentState) -> str:
+    """Araç çağrısı varsa devam et, yoksa bitir."""
+    last_message = state["messages"][-1]
+    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
+        return "tools"
+    return END
+
+# ── Graf oluştur ──────────────────────────────────────────────────────────
+graph = StateGraph(AgentState)
+graph.add_node("agent", agent_node)
+graph.add_node("tools", tool_node)
+
+graph.add_edge(START, "agent")
+graph.add_conditional_edges("agent", should_continue, {"tools": "tools", END: END})
+graph.add_edge("tools", "agent")  # araçtan sonra tekrar LLM'e dön
+
+app = graph.compile()
+
+# Kullanım
+result = app.invoke({"messages": [("user", "Laptop'un fiyatı ne? %10 indirim uygula.")]})
+print(result["messages"][-1].content)
+```
+
+#### CrewAI ile Çok-Ajanlı Sistem
+
+Birden fazla uzmanlaşmış ajanın birlikte çalışması için CrewAI kullanılır. Her ajan farklı bir rol üstlenir.
+
+```python
+# pip install crewai crewai-tools
+
+from crewai import Agent, Task, Crew, Process
+from crewai_tools import SerperDevTool  # web arama aracı
+
+# ── Uzman ajanlar ─────────────────────────────────────────────────────────
+researcher = Agent(
+    role="Veri Araştırmacısı",
+    goal="Verilen konuda güncel ve doğru bilgi topla",
+    backstory="Analitik düşünen, kaynak doğrulamaya önem veren bir araştırmacısın.",
+    tools=[SerperDevTool()],
+    verbose=True,
+    max_iter=5,  # sonsuz döngü engellemek için
+)
+
+analyst = Agent(
+    role="Veri Analisti",
+    goal="Araştırma bulgularını analiz et ve içgörü çıkar",
+    backstory="Sayısal verileri yorumlamada uzman, özlü raporlar yazan bir analistsin.",
+    verbose=True,
+)
+
+# ── Görevler ──────────────────────────────────────────────────────────────
+research_task = Task(
+    description="2025-2026 LLM framework trendlerini araştır. En az 5 güncel kaynak kullan.",
+    expected_output="Yapılandırılmış bir araştırma özeti: frameworkler, kullanım oranları, trendler",
+    agent=researcher,
+)
+
+analysis_task = Task(
+    description="Araştırma bulgularını analiz et. Hangi framework hangi use-case için uygun?",
+    expected_output="Karar matrisi: framework × use-case tablosu + tavsiyeler",
+    agent=analyst,
+    context=[research_task],  # önceki görevin çıktısını kullan
+)
+
+# ── Crew oluştur ──────────────────────────────────────────────────────────
+crew = Crew(
+    agents=[researcher, analyst],
+    tasks=[research_task, analysis_task],
+    process=Process.sequential,  # sıralı; veya Process.hierarchical (yönetici ajan)
+    verbose=True,
+)
+
+result = crew.kickoff()
+print(result.raw)
+```
+
+#### Framework Karşılaştırması
+
+| Framework | Güçlü Yön | Ne Zaman |
+|-----------|-----------|----------|
+| LangGraph | Durum korumalı, karmaşık iş akışları, döngüler | Production agent, multi-step reasoning |
+| CrewAI | Çok-ajanlı ekipler, rol bazlı | Araştırma, içerik üretim pipeline'ı |
+| AutoGen (Microsoft) | Konuşma tabanlı çok-ajan | Kod üretimi, tartışma tabanlı problem çözme |
+| OpenAI Assistants API | Yönetilen altyapı, file search dahil | Hızlı prototip, OpenAI ekosistemi |
+| Smolagents (HuggingFace) | Minimal, açık kaynak | Özelleştirilmiş agent, tam kontrol |
+
+> **Senior Notu:** Agent reliability (güvenilirlik) hâlâ düşük — LLM araç çağrılarını yanlış kullanabilir, döngüye girebilir, halüsinasyon yapabilir. Production'da şu üç mekanizma zorunludur: **(1) Timeout** — her adım ve toplam yürütme için üst sınır koy. **(2) Fallback** — agent başarısız olduğunda deterministic bir yedek yanıt ver. **(3) Human-in-the-loop** — yüksek riskli aksiyonlarda (silme, para transferi, e-posta gönderme) insan onayı iste. LangGraph'ın `interrupt_before` mekanizması bunu kolaylaştırır. Ayrıca her araç çağrısını logla: hem debug için hem audit trail için.
 
 ---
 

@@ -83,11 +83,88 @@ proje-0-analitik/
 
 `queries.sql` — zorunlu sorgular:
 ```sql
--- 1. Aylık gelir trendi + MoM büyüme
--- 2. Funnel: visit → add_to_cart → purchase
--- 3. Cohort retention (ilk sipariş ayına göre)
--- 4. Her kullanıcının son siparişi (window function)
--- 5. Top-10 ürün / kategori
+-- ═══════════════════════════════════════
+-- 1. Aylık Gelir Trendi + MoM Büyüme
+-- ═══════════════════════════════════════
+WITH monthly_revenue AS (
+    SELECT
+        DATE_TRUNC('month', order_date)     AS month,
+        SUM(order_amount)                   AS revenue
+    FROM orders
+    WHERE order_status = 'completed'
+    GROUP BY 1
+)
+SELECT
+    month,
+    revenue,
+    LAG(revenue) OVER (ORDER BY month)     AS prev_month_revenue,
+    ROUND(
+        100.0 * (revenue - LAG(revenue) OVER (ORDER BY month))
+              / NULLIF(LAG(revenue) OVER (ORDER BY month), 0),
+    2)                                      AS mom_growth_pct
+FROM monthly_revenue
+ORDER BY month;
+
+-- ═══════════════════════════════════════
+-- 2. Cohort Retention Analizi
+-- ═══════════════════════════════════════
+WITH cohorts AS (
+    SELECT
+        user_id,
+        DATE_TRUNC('month', MIN(order_date)) AS cohort_month
+    FROM orders
+    GROUP BY user_id
+),
+user_activity AS (
+    SELECT
+        o.user_id,
+        c.cohort_month,
+        DATE_TRUNC('month', o.order_date)    AS activity_month,
+        DATEDIFF('month', c.cohort_month, DATE_TRUNC('month', o.order_date)) AS months_since_cohort
+    FROM orders o
+    JOIN cohorts c ON o.user_id = c.user_id
+)
+SELECT
+    cohort_month,
+    months_since_cohort,
+    COUNT(DISTINCT user_id)                   AS active_users,
+    FIRST_VALUE(COUNT(DISTINCT user_id)) OVER (
+        PARTITION BY cohort_month ORDER BY months_since_cohort
+    )                                          AS cohort_size,
+    ROUND(
+        100.0 * COUNT(DISTINCT user_id)
+              / FIRST_VALUE(COUNT(DISTINCT user_id)) OVER (
+                    PARTITION BY cohort_month ORDER BY months_since_cohort
+                ),
+    1)                                         AS retention_rate
+FROM user_activity
+GROUP BY cohort_month, months_since_cohort
+ORDER BY cohort_month, months_since_cohort;
+
+-- ═══════════════════════════════════════
+-- 3. Satın Alma Funnel Analizi
+-- ═══════════════════════════════════════
+WITH funnel_steps AS (
+    SELECT
+        user_id,
+        MAX(CASE WHEN event_type = 'page_view'       THEN 1 ELSE 0 END) AS step1_view,
+        MAX(CASE WHEN event_type = 'add_to_cart'     THEN 1 ELSE 0 END) AS step2_cart,
+        MAX(CASE WHEN event_type = 'checkout_start'  THEN 1 ELSE 0 END) AS step3_checkout,
+        MAX(CASE WHEN event_type = 'purchase'        THEN 1 ELSE 0 END) AS step4_purchase
+    FROM events
+    WHERE event_date >= CURRENT_DATE - INTERVAL '30 days'
+    GROUP BY user_id
+)
+SELECT
+    SUM(step1_view)                                      AS visitors,
+    SUM(step2_cart)                                      AS added_to_cart,
+    SUM(step3_checkout)                                  AS started_checkout,
+    SUM(step4_purchase)                                  AS purchased,
+    ROUND(100.0 * SUM(step2_cart)     / NULLIF(SUM(step1_view),    0), 1) AS view_to_cart_pct,
+    ROUND(100.0 * SUM(step3_checkout) / NULLIF(SUM(step2_cart),    0), 1) AS cart_to_checkout_pct,
+    ROUND(100.0 * SUM(step4_purchase) / NULLIF(SUM(step3_checkout), 0), 1) AS checkout_to_purchase_pct,
+    ROUND(100.0 * SUM(step4_purchase) / NULLIF(SUM(step1_view),    0), 1) AS overall_conversion_pct
+FROM funnel_steps;
 ```
 
 ### EDA Kontrol Listesi
@@ -929,6 +1006,60 @@ col3.metric("Predictions/day", "15,240", "+240")
 - Ay 2: Monitoring + A/B test
 - Ay 3: İyileştirmeler + ölçekleme
 ```
+
+#### Proje-7 Sistem Tasarımı Doküman Şablonu
+
+````markdown
+# [Sistem Adı] — Sistem Tasarımı Dokümanı
+**Tarih:** YYYY-MM-DD | **Yazar:** [Ad] | **Durum:** Taslak / İncelemede / Onaylandı
+
+## 1. Problem Tanımı
+[Ne inşa ediyoruz? Neden gerekli? Hangi iş metriğini etkiliyor?]
+
+## 2. Gereksinimler
+### Fonksiyonel
+- [ ] [Temel özellik 1]
+- [ ] [Temel özellik 2]
+
+### Non-Fonksiyonel (SLA'lar)
+| Metrik | Hedef |
+|--------|-------|
+| Latency (p99) | < 200ms |
+| Throughput | 1000 req/s |
+| Erişilebilirlik | %99.9 |
+
+## 3. Yüksek Seviye Mimari
+[ASCII diyagram veya metin açıklama]
+
+## 4. Veri Akışı
+1. Kullanıcı → [bileşen A]
+2. [Bileşen A] → [bileşen B]
+3. [Bileşen B] → Yanıt
+
+## 5. Bileşen Detayları
+### [Bileşen Adı]
+- **Sorumluluk:**
+- **Teknoloji seçimi ve gerekçe:**
+- **Ölçekleme stratejisi:**
+
+## 6. Latency Bütçesi
+| Bileşen | Bütçe | Gerçek |
+|---------|-------|--------|
+| Network | 10ms | - |
+| Feature fetch | 20ms | - |
+| Model inference | 30ms | - |
+| **Toplam** | **60ms** | - |
+
+## 7. Trade-off Analizi
+| Seçenek | Artılar | Eksiler | Neden Seçilmedi/Seçildi |
+|---------|---------|---------|------------------------|
+
+## 8. Açık Sorular
+- [ ] [Yanıtlanması gereken soru 1]
+
+## 9. Sonraki Adımlar
+- [ ] [Aksiyon 1] — Sorumlu: [Ad] — Tarih: YYYY-MM-DD
+````
 
 ### Sistem Tasarım Dokümanı Kontrol Listesi
 

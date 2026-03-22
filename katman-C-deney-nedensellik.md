@@ -1248,6 +1248,54 @@ print(refutation)
 
 > **Senior Notu:** DoWhy'da `refute_estimate` kritik. "Eğer gizli bir confounder eklesem sonuç değişir mi?" sorusunu yanıtlar. Değişiyorsa nedensel iddia zayıf. Her causal analysis raporuna refutation ekle.
 
+### C.7.6 Causal Forest — Heterogeneous Treatment Effects (HTE)
+
+**Sezgisel:** "Tedavi etkisi herkes için aynı mı? Hayır — 25 yaş kadın vs 55 yaş erkek için farklı."
+
+Causal Forest (Athey & Wager, 2019) her alt grup için ayrı treatment effect tahmin eder. Tek bir ortalama ATE yerine, her gözlem için ayrı bir CATE (Conditional Average Treatment Effect) üretir. Bu sayede "Bu kampanya hangi kullanıcı segmenti için karlı?" gibi soruları yanıtlamak mümkün olur.
+
+```python
+# pip install econml
+from econml.dml import CausalForestDML
+from sklearn.linear_model import LassoCV
+from sklearn.ensemble import GradientBoostingRegressor
+import numpy as np
+import pandas as pd
+
+np.random.seed(42)
+n = 2000
+
+# Sentetik veri: promosyon etkisi yaşa göre değişiyor
+X = np.random.randn(n, 3)  # özellikler: yaş, geçmiş alım, segment
+T = (X[:, 0] + np.random.randn(n) > 0).astype(float)  # treatment (promosyon)
+# Genç kullanıcılar (X[:,0] > 0) promosyona daha duyarlı
+tau_true = 2 + 3 * (X[:, 0] > 0)  # HTE: yaşa göre farklı etki
+Y = tau_true * T + X[:, 0] * 0.5 + np.random.randn(n)  # outcome
+
+# Causal Forest eğitimi
+cf = CausalForestDML(
+    model_y=GradientBoostingRegressor(n_estimators=100),
+    model_t=LassoCV(cv=5),
+    n_estimators=200,
+    min_samples_leaf=20,
+    random_state=42,
+    cv=5
+)
+cf.fit(Y, T, X=X)
+
+# Treatment effect tahminleri
+tau_hat = cf.effect(X)
+print(f"Ortalama tahmini etki: {tau_hat.mean():.3f} (gerçek: {tau_true.mean():.3f})")
+print(f"Yüksek etki grubu (X0>0): {tau_hat[X[:,0]>0].mean():.3f}")
+print(f"Düşük etki grubu (X0≤0): {tau_hat[X[:,0]<=0].mean():.3f}")
+
+# Güven aralıkları
+lb, ub = cf.effect_interval(X, alpha=0.1)  # %90 CI
+print(f"\nOrtalama CI genişliği: {(ub - lb).mean():.3f}")
+```
+
+> **Senior Notu:** Causal Forest'ı A/B test sonrası analiz için kullan: "Bu kullanıcı segmenti için kampanya karlı mıydı?" HTE yüksek varyansa sahip olabilir — büyük örneklem (n>5000) gerekir. EconML'in `const_marginal_effect` ve policy learning API'si üretim kalitesinde değerlendirme sağlar.
+
 ---
 
 ## C.8 Multi-Armed Bandit (MAB)
@@ -1306,7 +1354,104 @@ arm_counts = [ts.alpha[i] + ts.beta[i] - 2 for i in range(4)]
 print(f"\nKol seçim sayıları: {arm_counts}")
 ```
 
-> **Senior Notu:** Thompson Sampling iyi bir başlangıç. Contextual bandit (LinUCB, Neural UCB) feature'ları kullanır — kişiye özel öneri gibi durumlarda. Ama uygulamada dikkat: exploration gürültüsü iş metrikleri üzerinde olumsuz etki yaratabilir. Banditi prodda çalıştırmadan önce offline simülasyon yap.
+```python
+# UCB (Upper Confidence Bound) — güven aralığı tabanlı exploration
+class UCB1:
+    """
+    UCB1 — Optimism in the Face of Uncertainty.
+    Az denenen arm'a güven bonusu ver.
+    """
+    def __init__(self, n_arms: int):
+        self.n_arms = n_arms
+        self.counts = np.zeros(n_arms)    # Her arm kaç kez seçildi?
+        self.values = np.zeros(n_arms)    # Ortalama ödül
+
+    def select(self, t: int) -> int:
+        # İlk turda her arm'ı bir kez dene
+        for arm in range(self.n_arms):
+            if self.counts[arm] == 0:
+                return arm
+        # UCB skoru: ortalama + keşif bonusu
+        ucb_scores = self.values + np.sqrt(2 * np.log(t + 1) / self.counts)
+        return np.argmax(ucb_scores)
+
+    def update(self, arm: int, reward: float):
+        self.counts[arm] += 1
+        n = self.counts[arm]
+        self.values[arm] = ((n - 1) * self.values[arm] + reward) / n
+
+# Karşılaştırma: Thompson vs UCB
+np.random.seed(42)
+ucb = UCB1(n_arms=4)
+ucb_rewards = []
+
+for t, _ in enumerate(range(n_rounds)):
+    arm = ucb.select(t)
+    reward = np.random.binomial(1, true_rates[arm])
+    ucb.update(arm, reward)
+    ucb_rewards.append(reward)
+
+print(f"UCB1 kümülatif ödül:          {sum(ucb_rewards)}")
+print(f"Thompson Sampling kümülatif:  {sum(ts_rewards)}")
+print(f"Optimal (oracle):             {n_rounds * max(true_rates):.0f}")
+```
+
+### Bandit Algoritmaları Karşılaştırması
+
+| Algoritma | Exploration | Production Kolaylığı | Ne Zaman? |
+|-----------|------------|---------------------|-----------|
+| Epsilon-greedy | Rastgele ε oranda | ✓ Basit | Başlangıç prototipi |
+| UCB1 | Güven aralığı | ✓ Deterministik | Stabil ortam |
+| Thompson Sampling | Bayesian posterior | ✓ Genellikle en iyi | Genel amaç |
+| LinUCB | Bağlam + güven | ✗ Daha karmaşık | Kişiselleştirme |
+
+### LinUCB — Contextual Bandit (Bağlamsal Bandit)
+
+**Sezgisel:** Standart banditler her kullanıcıya aynı kararı verir. LinUCB ise kullanıcı özelliklerini (bağlamı) dikkate alır: genç bir kullanıcıya farklı içerik, yaşlı bir kullanıcıya farklı içerik önerir. Haber önerisi, e-ticaret banner seçimi, kişisel kampanya gibi durumlarda uygundur.
+
+```python
+# LinUCB — Contextual Bandit (Bağlamsal Bandit)
+# Kullanıcı özelliklerini (bağlamı) dikkate alır
+class LinUCB:
+    """
+    LinUCB — haber/içerik önerisi gibi bağlamsal kararlar için.
+    Her arm için ayrı lineer model tutar.
+    """
+    def __init__(self, n_arms: int, d: int, alpha: float = 1.0):
+        self.alpha = alpha          # Exploration katsayısı
+        self.A = [np.eye(d) for _ in range(n_arms)]       # d×d matris
+        self.b = [np.zeros(d) for _ in range(n_arms)]     # d-boyutlu vektör
+
+    def select(self, context: np.ndarray) -> int:
+        """Context = kullanıcı özellikleri (ör. yaş, geçmiş tıklamalar)"""
+        scores = []
+        for arm in range(len(self.A)):
+            A_inv = np.linalg.inv(self.A[arm])
+            theta = A_inv @ self.b[arm]
+            # UCB skoru: beklenti + keşif bonusu
+            ucb = theta @ context + self.alpha * np.sqrt(context @ A_inv @ context)
+            scores.append(ucb)
+        return np.argmax(scores)
+
+    def update(self, arm: int, context: np.ndarray, reward: float):
+        self.A[arm] += np.outer(context, context)
+        self.b[arm] += reward * context
+
+# Kullanım örneği: haber önerisi
+np.random.seed(42)
+d = 5  # kullanıcı feature boyutu (yaş, platform, geçmiş kategoriler...)
+linucb = LinUCB(n_arms=4, d=d, alpha=0.5)
+
+for _ in range(1000):
+    user_context = np.random.randn(d)  # gerçekte: kullanıcı feature vektörü
+    arm = linucb.select(user_context)
+    reward = np.random.binomial(1, true_rates[arm])
+    linucb.update(arm, user_context, reward)
+
+print("LinUCB eğitimi tamamlandı — bağlamsal öneri hazır")
+```
+
+> **Senior Notu:** Bandit vs A/B test seçimi: Bandit regret'i minimize eder ama kontrol edilmesi zordur. A/B test temiz bir istatistiksel anlama sahipken bandit "winner" belirsizdir. Production'da: (1) Bandit'i exploration-only bölgelerde kullan (yeni içerik, cold-start), (2) İş metrikleri üzerinde A/B test yap; (3) Her zaman offline replay evaluation ile simüle et.
 
 ---
 

@@ -89,7 +89,16 @@
 |--------|--------|---------|
 | [Causal Inference: The Mixtape — Cunningham](https://mixtape.scunning.com) | İleri | Ücretsiz online kitap, DiD/IV/RD |
 | [Microsoft ExP Platform Blog](https://www.microsoft.com/en-us/research/group/experimentation-platform-exp/) | İleri | CUPED, online denemeler |
-| [DoWhy Dokümantasyonu](https://py-why.github.io/dowhy) | İleri | Causal model, refutation |
+| [DoWhy / PyWhy Dokümantasyonu](https://py-why.github.io/dowhy) | İleri | Causal model, refutation testleri, EconML |
+| [EconML Dokümantasyonu](https://econml.azurewebsites.net) | İleri | Causal Forest, CATE, heterogeneous effects |
+
+### RAG ve Embedding → [Katman D](katman-D-derin-ogrenme.md)
+
+| Kaynak | Seviye | Özellik |
+|--------|--------|---------|
+| [Voyage AI Blog](https://blog.voyageai.com) | Orta–İleri | Embedding kalitesi, MTEB benchmark, RAG best practice |
+| [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard) | Her seviye | En güncel embedding model karşılaştırması |
+| [Evidently AI Blog](https://www.evidentlyai.com/blog) | Orta | ML monitoring, drift detection, LLM evals |
 
 ---
 
@@ -174,7 +183,8 @@
 | [Sebastian Ruder Blog](https://ruder.io) | NLP, transfer learning |
 | [Eugene Yan Blog](https://eugeneyan.com) | Applied ML, RecSys, kariyer |
 | [Chip Huyen Blog](https://huyenchip.com) | ML engineering, production |
-| [Hamel Husain Blog](https://hamel.dev) | LLM evals, fine-tuning |
+| [Hamel Husain Blog](https://hamel.dev) | LLM evals, fine-tuning, RAG |
+| [Simon Willison Blog](https://simonwillison.net) | LLM uygulamaları, güvenlik, araç değerlendirme |
 
 ---
 
@@ -235,6 +245,7 @@
 | @rasbt | Python ML, PyTorch |
 | @eugeneyan | Applied ML, RecSys |
 | @LilyWengML (Lilian Weng) | RL, DL, LLM araştırma |
+| @simonw (Simon Willison) | LLM güvenlik, araç değerlendirme, datasette |
 
 ### YouTube Kanalları
 
@@ -266,6 +277,7 @@
 | [Bilgisayar Kavramları — Şadi Evren Şeker](https://youtube.com/@sadievrenseker) | Algoritma, veri yapıları, ML kavramları; akademik ama anlaşılır |
 | [BTK Akademi](https://www.btkakademi.gov.tr) | Ücretsiz Python, veri bilimi, yapay zeka kursları; sertifikalı |
 | [Vahit Keskin](https://youtube.com/@vahitkeskin) | Python, R, veri bilimi; Udemy'deki kursların destekleyicisi |
+| [3Blue1Brown (Türkçe altyazılı)](https://youtube.com/@3blue1brown) | Lineer cebir, kalkülüs, neural networks; görsel-sezgisel; Türkçe altyazı seçeneği mevcut |
 
 #### Türkçe Topluluklar
 
@@ -353,7 +365,7 @@ Mülakat Hazırlığı
 
 **Newsletter:** Günlük makale okumak yerine haftalık özet seçin. "The Batch" + "TLDR AI" + "Ahead of AI" üçlüsü yeterli.
 
-**LLM kaynakları:** 2026 itibarıyla en değerli içerik Discord/Slack'te ve GitHub issue'larında yaşıyor. Hamel Husain (hamel.dev) ve Simon Willison (simonwillison.net) LLM engineering için en pratik kaynaklar.
+**LLM kaynakları:** 2026 itibarıyla en değerli içerik Discord/Slack'te ve GitHub issue'larında yaşıyor. [Hamel Husain (hamel.dev)](https://hamel.dev) ve [Simon Willison (simonwillison.net)](https://simonwillison.net) LLM engineering için en pratik kaynaklar.
 
 ---
 

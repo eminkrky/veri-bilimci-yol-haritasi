@@ -770,6 +770,20 @@ jobs:
 - **Model serving:** vLLM (LLM için), Triton Inference Server (NVIDIA), BentoML → özel use-case'ler için
 - **Feature store:** Feast (açık kaynak), Hopsworks, Databricks Feature Store → orta-büyük ölçek
 
+**LLMOps — GenAI Gözlemlenebilirliği (2025 yeni):**
+- LLM/RAG pipeline'ları için özel izleme araçları: **Langfuse** (açık kaynak, prompt versioning, trace), **Arize Phoenix** (LLM observability), **Weights & Biases Weave**
+- Klasik MLOps metrikleri (drift, latency) artık yeterli değil; **hallucination oranı, faithfulness, context recall** de izleniyor
+
+**Platform Konsolidasyonu:**
+- **Databricks + MLflow** native entegrasyon güçlendi: Unity Catalog üzerinden model registry, Feature Store entegrasyonu
+- **Vertex AI (Google)** ve **SageMaker (AWS)** managed MLflow endpoint'leri sunmaya başladı
+- Küçük-orta ölçekli takımlar için **managed platforms** (Railway, Modal, Replicate) geleneksel K8s deployment'ın önüne geçiyor
+
+**Drift Detection Olgunluğu:**
+- PSI (Population Stability Index) hâlâ endüstri standardı: PSI < 0.1 stabil, 0.1–0.2 dikkat, > 0.2 alarm
+- JS divergence ve Wasserstein distance PSI'ye alternatif dağılım karşılaştırma metrikleri
+- **Population stability** = feature drift; **concept drift** = P(y|X) değişimi — ikisi ayrı izlenmeli
+
 ---
 
 ## E.9 Data Lineage — Verinin Yolculuğunu Takip Etme

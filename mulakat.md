@@ -734,6 +734,948 @@ Ders: Model problemi değil, mühendislik problemi.
   Feature parity testi CI/CD pipeline'ına eklenmelidir.
 ```
 
+### B7. Cold Start Problemi — Öneri Sistemi
+*(→ Bkz. Katman D4: RecSys mimarisi; Katman F2: Online/offline öneri sistemi tasarımı)*
+
+**Soru:** "Yeni kullanıcı ve yeni ürün için öneri nasıl yaparsınız? (cold start)"
+
+```
+Cold start iki boyutlu bir sorundur:
+  1. Yeni kullanıcı: Hiç geçmişi yok, collaborative filtering çalışmaz.
+  2. Yeni ürün:     Hiç etkileşim almamış, embedding öğrenemez.
+
+── Yeni Kullanıcı Stratejileri ──────────────────────────────────────
+
+1. Popularity-based fallback (en basit, güçlü baseline):
+   → Tüm kullanıcılara trending / en çok satan ürünleri göster.
+   → Segmentlere böl: yeni kullanıcı ülkesi, cihaz türü, kayıt kanalına
+     göre özelleştirilmiş "popüler" listesi.
+   → Avantaj: Her zaman çalışır, sıfır latency.
+   → Dezavantaj: Kişisel değil, filter bubble riski.
+
+2. Onboarding soruları (explicit feedback):
+   → Kayıt sırasında "Hangi kategoriler ilginizi çekiyor?" sorusu.
+   → 3-5 kategori seçimi → anında içerik tabanlı öneri başlat.
+   → Netflix tarzı: ilk giriş ekranında tür seçimi.
+
+3. Content-based filtering (metadata embedding):
+   → Kullanıcı profil bilgileri (yaş grubu, konum, referral source)
+     → benzer profildeki kullanıcıların beğendikleri.
+   → Ürün metadata'sı (kategori, fiyat aralığı, marka) → TF-IDF veya
+     BERT embedding ile kullanıcı tercihine benzer ürünler.
+
+4. Transfer learning / cross-domain:
+   → Kullanıcı başka bir platformdan (login via Google) geliyorsa
+     demografik bilgi çıkar.
+   → Aynı şirketin farklı ürününden davranış transferi.
+
+── Yeni Ürün Stratejileri ───────────────────────────────────────────
+
+1. Content-based bootstrap:
+   → Ürün açıklaması, kategorisi, fiyatı, görseli → embedding üret.
+   → Benzer embedding'li ürünlerin aldığı kullanıcılara göster.
+
+2. Explore-exploit (epsilon-greedy veya Thompson Sampling):
+   → Yeni ürünü %10 oranında rastgele kullanıcılara göster (explore).
+   → Yeterli tıklama/satın alma birikince normal ranker devreye girer.
+
+3. Hybrid öneri mimarisi:
+
+   def recommend(user_id, n=10):
+       history = get_user_history(user_id)
+       if len(history) >= MIN_INTERACTIONS:          # warm user
+           return collaborative_filter(user_id, n)
+       elif has_profile(user_id):                    # cold user + profil
+           return content_based(user_id, n)
+       else:                                         # tam cold
+           return popularity_based(segment=get_segment(user_id), n=n)
+
+── Değerlendirme ────────────────────────────────────────────────────
+
+  Cold start kullanıcıları ayrı segment olarak izle:
+  → İlk 7 gün retention oranı (cold vs warm user)
+  → Click-through rate farkı
+  → Kaçıncı etkileşimden sonra kişiselleşme başlıyor? (ramp-up curve)
+
+Senior Notu:
+  Cold start bir "başlangıç sorunu" değil, sürekli bir sorundur.
+  Kullanıcıların %20-30'u herhangi bir anda "cold" sayılabilir
+  (seyrek kullanıcılar, yeni segment, mevsimsel kullanıcılar).
+  Sistemi bu oran düşünülerek tasarla.
+```
+
+### B8. Concept Drift — Ne Zaman Yeniden Eğit?
+*(→ Bkz. Katman E3: Model monitoring; Katman B6: Production'da başarısız model)*
+
+**Soru:** "Model ne zaman yeniden eğitilmeli? Nasıl karar verirsin?"
+
+```
+Drift türleri önce netleştirilmeli:
+
+  1. Data drift (covariate shift): P(X) değişti, P(Y|X) aynı.
+     → Feature dağılımları kaydı.
+     → Örnek: Müşteri tabanı genişledi, yeni demografi geldi.
+
+  2. Concept drift: P(Y|X) değişti.
+     → Gerçek ilişki değişti.
+     → Örnek: COVID → "seyahat" feature'ı anlamını yitirdi.
+
+  3. Label shift: P(Y) değişti.
+     → Pozitif/negatif oranı kaydı.
+
+── Tespit Yöntemleri ────────────────────────────────────────────────
+
+1. Population Stability Index (PSI) — feature drift için:
+   PSI = Σ (Actual% - Expected%) × ln(Actual% / Expected%)
+   → PSI < 0.10: stabil (yeşil)
+   → 0.10 ≤ PSI < 0.25: hafif kayma (sarı, izle)
+   → PSI ≥ 0.25: ciddi kayma (kırmızı, alarm)
+
+2. KS testi (Kolmogorov-Smirnov):
+   from scipy import stats
+   stat, p = stats.ks_2samp(train_feature, prod_feature)
+   if p < 0.05:
+       print("Drift tespit edildi!")
+
+3. Performans monitörü (label varsa):
+   → Günlük/haftalık AUC, F1, precision@k izle.
+   → Baseline'dan %5 düşüş → sarı alarm.
+   → %10 düşüş → kırmızı alarm, retrain tetikle.
+
+4. Evidently AI (açık kaynak):
+   from evidently.report import Report
+   from evidently.metric_preset import DataDriftPreset
+   report = Report(metrics=[DataDriftPreset()])
+   report.run(reference_data=train_df, current_data=prod_df)
+   report.save_html("drift_report.html")
+
+── Retrain Stratejileri ─────────────────────────────────────────────
+
+Scheduled retraining (takvim bazlı):
+  → Her hafta / her ay sabit aralıkla retrain.
+  → Basit, öngörülebilir. Drift olmasa bile retrain eder (maliyet).
+  → Yavaş değişen sistemler için uygundur.
+
+Triggered retraining (tetiklemeli):
+  → PSI veya performans eşiği aşılınca retrain.
+  → Daha verimli, ama tespit gecikmesi riski var.
+  → Gerçek zamanlı kritik sistemler için tercih edilir.
+
+Hybrid (önerilen):
+  → Scheduled + trigger: "En az ayda bir, ama drift tespitinde hemen."
+
+── Champion-Challenger Pattern ──────────────────────────────────────
+
+  Mevcut model (champion) → %90 trafik
+  Yeni retrained model (challenger) → %10 trafik
+  → 1-2 hafta A/B test
+  → Challenger kazanırsa otomatik promote
+
+  Avantaj: Production'a güvenle geçiş. Kötü model tüm trafiği etkilemez.
+
+── Gradual Rollout ───────────────────────────────────────────────────
+
+  Yeni model: %1 → %5 → %20 → %50 → %100
+  Her aşamada metrik kontrol, sorun yoksa bir sonraki aşama.
+  Canary deployment ile birleştirilebilir.
+
+Senior Notu:
+  Retrain ≠ fix. Eğer concept drift yapısal ise (iş modeli değişti,
+  pandemi vb.) eski veriyi atmak gerekebilir. "Ne kadar geriye git?"
+  sorusunun cevabı drift hızına bağlıdır. Expanding window değil,
+  sliding window dene.
+```
+
+### B9. Production'da Fairness Bug
+*(→ Bkz. Katman G2: Etik ve sorumluluk; Katman B2: Imbalanced classification)*
+
+**Soru:** "Deploy ettiğin modelin belirli bir demografik grupta %30 daha yüksek false positive oranı oluşturduğunu keşfettin. Ne yaparsın?"
+
+```
+Acil triage adımları (ilk 2 saat):
+
+  1. Ciddiyeti doğrula:
+     → Tek bir gün mi, sürekli mi? (noise vs gerçek sorun)
+     → Hangi grup, kaç kullanıcı etkileniyor?
+     → İş etkisi: Para kaybı, yasal risk, reputasyon hasarı?
+
+  2. Modeli durdur veya fallback'e geç:
+     → Eğer yüksek risk (kredi, işe alım, sağlık): modeli durdur.
+     → Eğer düşük risk: Izlemeye devam, düzeltme planla.
+
+  3. Stakeholder bildirimi:
+     → Legal / compliance ekibi (GDPR, EEOC gibi düzenlemeler)
+     → Ürün yöneticisi ve etkilenen ekipler
+     → Üst yönetim (gerekirse)
+
+── Fairness Metrikleri ──────────────────────────────────────────────
+
+  Demografik Eşitlik (Demographic Parity):
+    P(Ŷ=1 | A=0) = P(Ŷ=1 | A=1)
+    → Her grupta pozitif tahmin oranı eşit olmalı.
+
+  Eşitlenmiş Şans (Equalized Odds):
+    FPR ve TPR her grupta eşit olmalı.
+    → Daha güçlü kısıt, çoğu durumda tercih edilir.
+
+  Fırsat Eşitliği (Equal Opportunity):
+    TPR (recall) her grupta eşit olmalı.
+    → Hassas uygulamalar için (tıbbi tanı, kredi verme).
+
+  Python ile hesap:
+  from sklearn.metrics import confusion_matrix
+
+  def group_fpr(y_true, y_pred, group_mask):
+      tn, fp, fn, tp = confusion_matrix(
+          y_true[group_mask], y_pred[group_mask]
+      ).ravel()
+      return fp / (fp + tn)
+
+  fpr_a = group_fpr(y_true, y_pred, group == 'A')
+  fpr_b = group_fpr(y_true, y_pred, group == 'B')
+  print(f"FPR farkı: {abs(fpr_a - fpr_b):.3f}")  # hedef < 0.05
+
+── Düzeltme Stratejileri ────────────────────────────────────────────
+
+1. Grup başına eşik (threshold per group) — en hızlı çözüm:
+   → Etkilenen grupta eşiği düşür (örn. 0.5 → 0.35)
+   → FPR düşer ama TPR de değişir, dikkatli calibrate et.
+   → Dezavantaj: Yasal açıdan "differential treatment" sayılabilir.
+
+2. Veri yeniden ağırlıklandırma (reweighting):
+   → Eksik temsil edilen grubu up-weight ederek retrain.
+   from sklearn.utils.class_weight import compute_sample_weight
+   weights = compute_sample_weight('balanced', y=group_labels)
+
+3. Fairness-aware algoritmalar (fairlearn):
+   from fairlearn.reductions import ExponentiatedGradient, EqualizedOdds
+   mitigator = ExponentiatedGradient(
+       estimator=base_model,
+       constraints=EqualizedOdds()
+   )
+   mitigator.fit(X_train, y_train, sensitive_features=A_train)
+
+4. Upstream çözüm — veri kalitesi:
+   → Etiket gürültüsü var mı? (belirli grupta yanlış etiket fazla mı?)
+   → Feature'larda proxy discrimination var mı?
+     (posta kodu → etnik grup proxy'si olabilir)
+
+── Post-mortem ──────────────────────────────────────────────────────
+
+  → Neden deployment öncesi tespit edilmedi?
+  → Fairness testi CI/CD'ye ekle (bias check as a gate)
+  → Model kartı (model card) güncelle — bilinen kısıtlamaları belgele
+  → Fairness metriğini production dashboard'a ekle
+
+Senior Notu:
+  Fairness tek bir metrik değildir. Demographic parity ve equalized
+  odds matematiksel olarak aynı anda sağlanamaz (Impossibility Theorem,
+  Chouldechova 2017). Hangi metriğin öncelikli olduğuna iş + etik +
+  hukuk ekibiyle birlikte karar ver. Teknik çözüm tek başına yeterli değil.
+```
+
+### B10. Feature Store Tasarımı
+*(→ Bkz. Katman F2: Feature store mimarisi; Katman E2: MLOps pipeline)*
+
+**Soru:** "Bir e-ticaret platformunda feature store nasıl tasarlarsın?"
+
+```
+Feature store neden gerekli?
+  → Aynı feature farklı ekiplerce farklı hesaplanıyor → tutarsızlık
+  → Training-serving skew (B6 senaryosu) → performans kaybı
+  → Feature hesaplama maliyeti tekrar tekrar ödeniyor → israf
+  → Yeni model geliştirme yavaş → feature keşfedilemez
+
+── Mimari: Offline + Online Store ───────────────────────────────────
+
+  ┌─────────────────────────────────────────────────────────┐
+  │                   Feature Pipeline                       │
+  │  Raw Events → dbt/Spark → Feature hesaplama             │
+  └────────────────┬───────────────────────────────────────-┘
+                   │
+         ┌─────────┴──────────┐
+         ▼                    ▼
+   Offline Store          Online Store
+   (S3 / Data Warehouse)  (Redis / DynamoDB)
+   Batch training için    Real-time serving için
+   Point-in-time query    < 5ms latency
+   Terabayt ölçek         Gigabayt ölçek
+
+Offline Store:
+  → Historical feature değerleri, timestamp ile birlikte
+  → Point-in-time correctness kritik:
+    "Model eğitiminde, o anki bilgiyi kullan — gelecek bilgiyi değil"
+  → Örnek: 2024-01-15'teki kullanıcı segmenti, o günkü değer olmalı
+    (bugünkü değer değil — data leakage kaynağı!)
+
+Online Store:
+  → En güncel feature değerleri (son N dakika)
+  → Düşük latency: Redis Sorted Sets, Cassandra, DynamoDB
+  → TTL (time-to-live) ile eski değerler otomatik temizlenir
+
+── Feast ile Somut Uygulama ─────────────────────────────────────────
+
+  # Feature tanımlama
+  from feast import Entity, Feature, FeatureView, ValueType
+  from feast.infra.offline_stores.file_source import FileSource
+
+  user_entity = Entity(name="user_id", value_type=ValueType.INT64)
+
+  user_source = FileSource(
+      path="s3://data-lake/user_features/",
+      timestamp_field="event_timestamp",
+  )
+
+  user_feature_view = FeatureView(
+      name="user_features",
+      entities=["user_id"],
+      ttl=timedelta(days=7),
+      features=[
+          Feature(name="total_orders_30d", dtype=ValueType.INT64),
+          Feature(name="avg_order_value_30d", dtype=ValueType.FLOAT),
+          Feature(name="churn_score", dtype=ValueType.FLOAT),
+      ],
+      source=user_source,
+  )
+
+  # Training için point-in-time join
+  training_df = store.get_historical_features(
+      entity_df=entity_df,  # user_id + event_timestamp içerir
+      features=["user_features:total_orders_30d",
+                "user_features:avg_order_value_30d"],
+  ).to_df()
+
+  # Serving için online lookup
+  feature_vector = store.get_online_features(
+      features=["user_features:churn_score"],
+      entity_rows=[{"user_id": 12345}],
+  ).to_dict()
+
+── Feature Freshness SLA ────────────────────────────────────────────
+
+  Feature tipi          | Freshness hedefi | Güncelleme sıklığı
+  ──────────────────────|──────────────────|───────────────────
+  Anlık sepet içeriği   | < 1 saniye       | Event-driven (Kafka)
+  Son 1 saat aktivite   | < 5 dakika       | Micro-batch (Spark)
+  Son 30 gün toplamları | < 1 gün          | Günlük batch (dbt)
+  Kullanıcı segmenti    | < 1 hafta        | Haftalık batch
+
+── Backfill Stratejisi ───────────────────────────────────────────────
+
+  Yeni feature eklendiğinde geçmiş için hesaplama:
+  1. Full backfill: Tüm tarihi veri için hesapla (pahalı, tek seferlik)
+  2. Incremental: Partition by date, sadece eksik günleri hesapla
+  3. On-demand: Training sırasında lazy hesapla
+
+  Backfill tamamlanmadan modeli eğitme!
+  → Eksik değerler imputation'a giderse feature anlamsızlaşır.
+
+Senior Notu:
+  Feature store'un değeri, içindeki feature'ların kalitesiyle ölçülür.
+  Teknik altyapı hazır olsa da "feature keşif kültürü" olmadan
+  feature store boş bir raf olur. Her feature için:
+  owner, description, computation logic, freshness SLA belgele.
+  Feature catalog (Datahub, Amundsen) ile entegre et.
+```
+
+### B11. Multi-Label Classification
+*(→ Bkz. Katman B2: Imbalanced classification; Katman D1: Metin sınıflandırma)*
+
+**Soru:** "Her ürüne birden fazla etiket tahmin eden bir model nasıl kurarsın? (örn. haber kategorisi)"
+
+```
+Problem tanımı:
+  Girdi: Haber metni
+  Çıktı: {Teknoloji, Siyaset, Spor, Ekonomi, ...} içinden 0 veya daha fazla etiket
+
+  Örnek:
+  "Apple yeni çip teknolojisiyle rekor satış açıkladı"
+  → [Teknoloji ✓, Ekonomi ✓, Siyaset ✗, Spor ✗]
+
+── Problem Çerçeveleme Yöntemleri ───────────────────────────────────
+
+1. Binary Relevance (en yaygın):
+   → Her etiket için bağımsız binary sınıflandırıcı.
+   → L etiket → L ayrı model.
+   → Avantaj: Basit, paralel eğitilebilir, yorumlanabilir.
+   → Dezavantaj: Etiketler arası korelasyonu görmez.
+
+   from sklearn.multiclass import OneVsRestClassifier
+   from sklearn.linear_model import LogisticRegression
+   clf = OneVsRestClassifier(LogisticRegression())
+   clf.fit(X_train, y_train)  # y_train: multilabel binary matrix
+
+2. Classifier Chain (etiket korelasyonunu yakalar):
+   → Etiket 1 tahmin → Etiket 2 = f(X, Etiket_1) → ...
+   → Sıralama önemli, ensemble ile çözülür.
+   from sklearn.multioutput import ClassifierChain
+   chain = ClassifierChain(LogisticRegression(), order='random', cv=5)
+
+3. Label Powerset (nadiren, küçük etiket seti için):
+   → Etiket kombinasyonlarını tek sınıf olarak gör.
+   → 3 etikette 2^3=8 sınıf → 10 etikette 1024 sınıf (patlar).
+
+4. Neural (önerilen büyük ölçekte):
+   → Tek model, çoklu sigmoid çıktı.
+   import torch.nn as nn
+   class MultiLabelClassifier(nn.Module):
+       def __init__(self, n_labels):
+           super().__init__()
+           self.bert = BertModel.from_pretrained('bert-base-uncased')
+           self.classifier = nn.Linear(768, n_labels)
+           self.sigmoid = nn.Sigmoid()
+
+       def forward(self, input_ids, attention_mask):
+           outputs = self.bert(input_ids, attention_mask)
+           return self.sigmoid(self.classifier(outputs.pooler_output))
+
+   Loss: BCEWithLogitsLoss (etiket başına binary cross-entropy)
+
+── Değerlendirme Metrikleri ─────────────────────────────────────────
+
+  from sklearn.metrics import f1_score, hamming_loss
+
+  # Hamming Loss: yanlış etiket oranı (düşük = iyi)
+  hl = hamming_loss(y_true, y_pred)
+  print(f"Hamming Loss: {hl:.4f}")  # 0.0 mükemmel, 1.0 en kötü
+
+  # Micro F1: tüm (örnek, etiket) çiftlerini dengeler
+  # Nadir etiketler dezavantajlı → nadir ama önemli etiket varsa dikkat
+  micro_f1 = f1_score(y_true, y_pred, average='micro')
+
+  # Macro F1: her etiket eşit ağırlık
+  # Nadir etiketleri de önemser → imbalanced label seti için tercih
+  macro_f1 = f1_score(y_true, y_pred, average='macro')
+
+  # Samples F1: örnek bazında hesap (çok etiketli için en anlamlı)
+  samples_f1 = f1_score(y_true, y_pred, average='samples')
+
+── Etiket Başına Eşik Optimizasyonu ─────────────────────────────────
+
+  Global 0.5 eşiği çoğu zaman suboptimal:
+  → Nadir etiket için 0.3, baskın etiket için 0.7 daha iyi olabilir.
+
+  from sklearn.metrics import f1_score
+  import numpy as np
+
+  def optimize_threshold(y_true, y_prob):
+      thresholds = np.arange(0.1, 0.9, 0.05)
+      best_thresholds = []
+      for i in range(y_true.shape[1]):
+          best_t, best_f1 = 0.5, 0
+          for t in thresholds:
+              f1 = f1_score(y_true[:, i], y_prob[:, i] > t, zero_division=0)
+              if f1 > best_f1:
+                  best_f1, best_t = f1, t
+          best_thresholds.append(best_t)
+      return best_thresholds
+
+Senior Notu:
+  Etiket dağılımını mutlaka incele. Nadir etiketler (örneklerin %1'i)
+  için binary relevance modeli tahmin bile üretmeyebilir. Class weight
+  veya focal loss kullan. Etiket sayısı 50+ ise hierarchical label
+  yapısı (üst kategori → alt kategori) modeli hem daha iyi hem daha
+  yorumlanabilir yapar.
+```
+
+### B12. Anomaly Detection Sistemi
+*(→ Bkz. Katman B2: Imbalanced classification; Katman F1: Gerçek zamanlı sistem tasarımı)*
+
+**Soru:** "Kredi kartı işlemlerinde anomali tespiti için sistem tasarla."
+
+```
+Zorluklar:
+  → Etiket yok veya çok az (hileli işlemlerin %0.1'i etiketli)
+  → Gerçek zamanlı karar: < 100ms latency
+  → Sürekli değişen saldırı pattern'ları (adversarial drift)
+  → False positive maliyeti yüksek (meşru müşteri engellenir)
+
+── Denetimli vs Denetimsiz Yaklaşım ─────────────────────────────────
+
+  Denetimli (labeled fraud varsa):
+  → XGBoost, LightGBM ile sınıflandırma
+  → Avantaj: Yüksek precision/recall (etiket kaliteli ise)
+  → Dezavantaj: Yeni fraud pattern'larını kaçırır (known unknowns)
+
+  Denetimsiz (label yok):
+  → Isolation Forest, Autoencoder, LOF, One-Class SVM
+  → Avantaj: Zero-day fraud (hiç görülmemiş pattern) yakalar
+  → Dezavantaj: Threshold ayarı zor, false positive yüksek
+
+  Önerilen: Ensemble (ikisi birlikte)
+
+── Isolation Forest ─────────────────────────────────────────────────
+
+  Sezgi: Anomaliler rastgele bölünmede hızla izole edilir.
+
+  from sklearn.ensemble import IsolationForest
+  import numpy as np
+
+  iso_forest = IsolationForest(
+      n_estimators=100,
+      contamination=0.01,  # Beklenen anomali oranı (%1)
+      random_state=42
+  )
+  iso_forest.fit(X_train_normal)  # Sadece normal işlemlerle eğit
+
+  scores = iso_forest.decision_function(X_test)
+  # Düşük skor = anormal
+  # -0.5 altı genellikle anomali
+
+── Autoencoder ile Anomali Tespiti ──────────────────────────────────
+
+  Sezgi: Normal işlemleri yeniden oluşturmayı öğren.
+  Anomaliler = yüksek reconstruction error.
+
+  import torch
+  import torch.nn as nn
+
+  class TransactionAutoencoder(nn.Module):
+      def __init__(self, input_dim=50, latent_dim=8):
+          super().__init__()
+          self.encoder = nn.Sequential(
+              nn.Linear(input_dim, 32),
+              nn.ReLU(),
+              nn.Linear(32, latent_dim),
+          )
+          self.decoder = nn.Sequential(
+              nn.Linear(latent_dim, 32),
+              nn.ReLU(),
+              nn.Linear(32, input_dim),
+          )
+
+      def forward(self, x):
+          z = self.encoder(x)
+          return self.decoder(z)
+
+  # Eğitim: sadece normal işlemler
+  # Anomali skoru: MSE(input, reconstruction)
+  def anomaly_score(model, x):
+      with torch.no_grad():
+          recon = model(x)
+      return ((x - recon) ** 2).mean(dim=1)
+
+── Eşik Kalibrasyonu ────────────────────────────────────────────────
+
+  Label olmadan eşik nasıl ayarlanır?
+
+  1. Domain knowledge: "Günde 100 işlemi manuel inceleme kapasitemiz var"
+     → Top-100 highest score → %X percentile bul → eşik yap.
+
+  2. Precision@k: Analistler k işlemi inceliyor → bunların kaçı gerçek fraud?
+     → Precision@100 = 0.30 → Kabul edilebilir mi? İş ile karar ver.
+
+  3. Cost-based optimization:
+     FP maliyeti: Müşteri şikayeti, destek maliyeti = 5 TL
+     FN maliyeti: Kaçan fraud = ortalama 250 TL
+     → Threshold'u minimize et: E[maliyet] = FP×5 + FN×250
+
+── Feedback Loop ────────────────────────────────────────────────────
+
+  Analist kararları → model güncelleme döngüsü:
+  → Analist "fraud" işaretlerse → labeled veri birikiyor
+  → 3 ayda bir supervised model ile karşılaştır
+  → Yeterli label birikince supervised model devreye al
+
+  Dikkat: Analistler sadece yüksek skorlu işlemleri görüyor
+  → Selection bias! Düşük skorlu ama gerçek fraud'ları görmüyor.
+  → Çözüm: %1 rastgele örneklemi analist incelemesine gönder.
+
+Senior Notu:
+  Anomali tespiti "model kurma" değil, "karar sistemi kurma" sorunudur.
+  Modelin skoru ham girdi, son karar kural motoru + iş logik ile verilir.
+  Eşik = sabitleme, açıklama, gözden geçirme döngüsü gerektirir.
+  Model kartına: false positive oranı, incelenen işlem başı maliyet,
+  son değerlendirme tarihi yazılmalı.
+```
+
+### B13. Öneri Sistemi — Diversity vs Accuracy Trade-off
+*(→ Bkz. Katman D4: RecSys; Katman B7: Cold start problemi)*
+
+**Soru:** "Kullanıcılar hep aynı tür içerik öneriliyor diye şikayet ediyor. Ne yaparsın?"
+
+```
+Sorun: Filter Bubble (filtre balonu)
+  → Collaborative filtering sadece geçmiş davranışa bakıyor.
+  → Beğendiğin içerikle benzer içerik öneriyor.
+  → Sonuç: Kullanıcı giderek daha dar bir içerik alanında hapsolur.
+  → Uzun vadede: Engagement düşüşü, churn artışı.
+
+── Diversity Metrikleri ─────────────────────────────────────────────
+
+  Intra-List Diversity (ILD):
+  → Bir kullanıcıya gösterilen N öneri arasındaki ortalama mesafe.
+  → Yüksek ILD = çeşitli öneri listesi.
+
+  def intra_list_diversity(item_embeddings, recommended_ids):
+      embeddings = item_embeddings[recommended_ids]
+      n = len(recommended_ids)
+      total_dist = 0
+      for i in range(n):
+          for j in range(i+1, n):
+              dist = 1 - cosine_similarity(
+                  embeddings[i].reshape(1,-1),
+                  embeddings[j].reshape(1,-1)
+              )[0][0]
+              total_dist += dist
+      return total_dist / (n * (n - 1) / 2)
+
+  Coverage:
+  → Toplam önerilen unique item sayısı / katalog büyüklüğü
+  → Sistemin "keşfettiği" alan genişliği
+
+  Serendipity:
+  → Kullanıcının beklemeyeceği ama beğeneceği öneriler.
+  → Ölçmek zor: Explicit "sürpriz mıydı?" anketi gerektirebilir.
+
+── Maximal Marginal Relevance (MMR) ─────────────────────────────────
+
+  Greedy algoritma: Her adımda hem relevance hem diversity optimize et.
+
+  MMR skoru:
+  score(i) = λ × relevance(i) - (1-λ) × max_similarity(i, selected)
+
+  → λ = 1.0: Sadece relevance (standart öneri)
+  → λ = 0.5: Dengeli (önerilen başlangıç değeri)
+  → λ = 0.0: Sadece diversity
+
+  def mmr_rerank(candidates, selected, item_embeddings, lambda_=0.5):
+      scores = {}
+      for item in candidates:
+          relevance = item.score
+          if selected:
+              max_sim = max(
+                  cosine_similarity(
+                      item_embeddings[item.id].reshape(1,-1),
+                      item_embeddings[s.id].reshape(1,-1)
+                  )[0][0]
+                  for s in selected
+              )
+          else:
+              max_sim = 0
+          scores[item.id] = lambda_ * relevance - (1-lambda_) * max_sim
+      return max(scores, key=scores.get)
+
+── Exploration-Exploitation Stratejileri ────────────────────────────
+
+  Epsilon-greedy öneride:
+  → %90 en iyi öneriyi göster (exploit)
+  → %10 rastgele farklı kategoriden öneri ekle (explore)
+  → Basit ama etkili başlangıç noktası
+
+  Thompson Sampling (Bayesian bandit):
+  → Her kategori için Beta dağılımı tut (tıklanma/tıklanmama)
+  → Posterior'dan örnekle, en yüksek örneklenen kategoriyi seç
+  → Doğal exploration-exploitation dengesi
+
+  Diversity-aware bandits:
+  → Ödül = accuracy + diversity_bonus
+  → diversity_bonus = ILD(son 10 öneri) × ağırlık
+
+── A/B Test Tasarımı ────────────────────────────────────────────────
+
+  Hipotez: MMR ile (λ=0.6) çeşitlilik artar, engagement düşmez.
+
+  Birincil metrik: 7-günlük retention (churn metriğini ölçer)
+  İkincil metrikler:
+    → Günlük aktif kullanıcı başına tıklama sayısı
+    → Farklı kategori sayısı (per-session category diversity)
+    → Oturum uzunluğu
+
+  Dikkat: CTR tek başına yanıltıcı.
+  Çeşitli öneri listesinde CTR düşebilir ama retention artabilir.
+  → Doğru metrik: uzun vadeli LTV (customer lifetime value).
+
+Senior Notu:
+  Diversity ile accuracy arasındaki trade-off kullanıcı segmentine göre
+  değişir. Yeni kullanıcılar keşif ister, power user'lar kaliteli
+  içerik ister. Kişiselleştirilmiş λ değeri (her kullanıcıya farklı
+  diversity ağırlığı) son adım olarak uygulanabilir.
+```
+
+### B14. NLP Model Deployment — Latency vs Accuracy
+*(→ Bkz. Katman E2: Model servis etme; Katman D2: NLP modelleri)*
+
+**Soru:** "BERT modelini production'a alacaksın, 200ms latency SLA var ama model 500ms. Ne yaparsın?"
+
+```
+Önce profil çıkar:
+  → 500ms nerede harcanıyor?
+  → Model inference: 400ms
+  → Tokenizer: 30ms
+  → Network/preprocessing: 70ms
+
+  Bottleneck = inference → buraya odaklan.
+
+── Strateji 1: Quantization (INT8) ──────────────────────────────────
+
+  Sezgi: 32-bit float yerine 8-bit integer → 4x küçük model, ~3x hızlı.
+
+  from transformers import AutoModelForSequenceClassification
+  import torch
+
+  model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased")
+
+  # Dynamic quantization (en kolay, CPU için)
+  quantized_model = torch.quantization.quantize_dynamic(
+      model,
+      {torch.nn.Linear},
+      dtype=torch.qint8
+  )
+  # Sonuç: ~3x hızlanma, <1% accuracy kaybı (genellikle)
+
+  # ONNX + INT8 (GPU için de çalışır)
+  # ort.quantization.quantize_dynamic() ile ONNX modelini quantize et
+
+── Strateji 2: Knowledge Distillation ──────────────────────────────
+
+  Sezgi: Büyük model (teacher) → küçük modeli (student) eğitir.
+  Student, teacher'ın davranışını taklit eder.
+
+  DistilBERT:
+  → BERT'in %40 daha küçük, %60 daha hızlı versiyonu
+  → GLUE benchmark'ta BERT'in %97 performansı
+  → Hugging Face'den hazır: "distilbert-base-uncased"
+
+  from transformers import DistilBertForSequenceClassification
+  student = DistilBertForSequenceClassification.from_pretrained(
+      "distilbert-base-uncased"
+  )
+  # Domain-specific: Önce distilbert-base ile fine-tune, teacher soft
+  # labellarıyla distillation loss ekle
+
+  Hiyerarşi (hız ↑, accuracy ↓):
+  BERT-large → BERT-base → DistilBERT → TinyBERT → MobileBERT
+
+── Strateji 3: ONNX Export ──────────────────────────────────────────
+
+  PyTorch → ONNX → ONNXRuntime (2-3x hızlanma)
+
+  import torch
+  from transformers import AutoTokenizer, AutoModel
+
+  tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+  model = AutoModel.from_pretrained("bert-base-uncased")
+
+  dummy_input = tokenizer("test", return_tensors="pt")
+  torch.onnx.export(
+      model,
+      tuple(dummy_input.values()),
+      "bert.onnx",
+      opset_version=13,
+      input_names=['input_ids', 'attention_mask'],
+      output_names=['last_hidden_state'],
+      dynamic_axes={'input_ids': {0: 'batch', 1: 'seq_len'}}
+  )
+
+  import onnxruntime as ort
+  sess = ort.InferenceSession("bert.onnx",
+         providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+  # ~2x hızlanma CPU'da, GPU'da daha fazla
+
+── Strateji 4: Batching ve Async ────────────────────────────────────
+
+  Dynamic batching (Triton Inference Server veya TorchServe):
+  → Gelen istekleri ~5ms beklet, biriktir, batch olarak çalıştır.
+  → 10 isteği ayrı ayrı: 10 × 500ms = 5000ms toplam GPU süresi
+  → 10 isteği batch: ~600ms toplam GPU süresi = 10x throughput artışı
+  → Latency biraz artar ama P99 iyileşir (queuing azalır)
+
+  Async inference:
+  → FastAPI + asyncio: I/O bound kısımlar (tokenize, pre/post process)
+    non-blocking yap
+  → Model inference CPU-bound: thread pool executor'e at
+
+── Strateji 5: Fallback Katmanı ─────────────────────────────────────
+
+  Basit sorgular için BERT'e gerek yok:
+
+  def predict(text):
+      if is_simple_query(text):           # kısa, net sorgular
+          return tfidf_classifier(text)   # ~5ms
+      elif medium_complexity(text):
+          return distilbert(text)          # ~80ms
+      else:
+          return full_bert(text)           # ~500ms
+
+  Routing logic: Güven skoru + query uzunluğu + kelime dağarcığı
+
+── Sonuç: Latency Bütçesi ──────────────────────────────────────────
+
+  Strateji kombinasyonu ile hedef:
+  ONNX export:          500ms → 250ms  (-50%)
+  INT8 quantization:    250ms → 100ms  (-60%)
+  Dynamic batching:     P99 → 150ms   (kuyruk azalır)
+  Fallback (%30 istek): Ortalama ~80ms
+
+  → P50 latency: ~80ms ✓
+  → P99 latency: ~180ms (SLA: 200ms) ✓
+
+Senior Notu:
+  Latency optimizasyonu accuracy-latency Pareto frontier problemidir.
+  Her optimizasyon adımını A/B test veya shadow deployment ile doğrula.
+  %2 accuracy kaybı kabul edilebilir mi? Bu iş kararı. Offline metrik
+  (F1) yerine online metrik (CTR, dönüşüm) üzerinde etkiye bak.
+```
+
+### B15. Zaman Serisi Tahmin — Sezonellik ve Trend
+*(→ Bkz. Katman B4: Feature engineering; Katman C3: Backtesting)*
+
+**Soru:** "E-ticaret satış tahmini yapman gerekiyor. Sezonellik ve trend nasıl ele alırsın?"
+
+```
+Zaman serisi bileşenleri:
+  Satış(t) = Trend(t) + Sezonellik(t) + Tatil_Etkisi(t) + Gürültü(t)
+
+  → Trend: Uzun vadeli artış/azalış (yıllık %15 büyüme)
+  → Sezonellik: Tekrar eden pattern (haftalık: Cuma > Pazartesi,
+                 yıllık: Kasım-Aralık zirve)
+  → Tatil etkisi: Kara Cuma, Ramazan, Yılbaşı
+  → Gürültü: Açıklanamayan varyans
+
+── STL Decomposition ────────────────────────────────────────────────
+
+  import pandas as pd
+  from statsmodels.tsa.seasonal import STL
+  import matplotlib.pyplot as plt
+
+  # Günlük satış verisi
+  stl = STL(sales_series, period=7, robust=True)
+  result = stl.fit()
+
+  # Bileşenleri incele
+  result.plot()
+  plt.show()
+
+  # Trend güçlü mü? Sezonellik ne kadar büyük?
+  trend_strength = 1 - result.resid.var() / (result.trend + result.resid).var()
+  seasonal_strength = 1 - result.resid.var() / (result.seasonal + result.resid).var()
+  print(f"Trend gücü: {trend_strength:.2f}")    # >0.6 = güçlü trend
+  print(f"Sezonellik: {seasonal_strength:.2f}") # >0.6 = güçlü sezonellik
+
+── Prophet ile Tahmin ───────────────────────────────────────────────
+
+  from prophet import Prophet
+  import pandas as pd
+
+  # Prophet formatı: 'ds' (datetime) + 'y' (değer)
+  df = sales_df.rename(columns={'date': 'ds', 'sales': 'y'})
+
+  model = Prophet(
+      changepoint_prior_scale=0.05,   # Trend esnekliği (düşük = stabil)
+      seasonality_prior_scale=10,     # Sezonellik kuvveti
+      yearly_seasonality=True,
+      weekly_seasonality=True,
+      daily_seasonality=False,        # Günlük veri için False
+  )
+
+  # Tatil günleri ekle (kritik!)
+  from prophet.make_holidays import make_holidays_df
+  tr_holidays = make_holidays_df(year_list=[2023, 2024, 2025], country='TR')
+  model.add_country_holidays(country_name='TR')
+
+  # Ek regressor: Kampanya
+  model.add_regressor('is_campaign_day')
+  df['is_campaign_day'] = (df['ds'].isin(campaign_dates)).astype(int)
+
+  model.fit(df)
+  future = model.make_future_dataframe(periods=90)  # 90 gün tahmin
+  forecast = model.predict(future)
+
+  # Tahmin aralıkları otomatik gelir (yhat_lower, yhat_upper)
+
+── Feature Engineering Yaklaşımı (ML modeli için) ───────────────────
+
+  Zaman serisi özelliklerini manuel oluştur → XGBoost / LightGBM ile:
+
+  def create_time_features(df):
+      df = df.copy()
+      df['hour'] = df['ds'].dt.hour
+      df['dayofweek'] = df['ds'].dt.dayofweek
+      df['month'] = df['ds'].dt.month
+      df['quarter'] = df['ds'].dt.quarter
+      df['is_weekend'] = df['dayofweek'].isin([5, 6]).astype(int)
+      df['is_month_end'] = df['ds'].dt.is_month_end.astype(int)
+
+      # Lag features (geçmiş değerler)
+      for lag in [1, 7, 14, 28]:
+          df[f'sales_lag_{lag}'] = df['sales'].shift(lag)
+
+      # Rolling features
+      for window in [7, 14, 28]:
+          df[f'sales_roll_mean_{window}'] = (
+              df['sales'].shift(1).rolling(window).mean()
+          )
+          df[f'sales_roll_std_{window}'] = (
+              df['sales'].shift(1).rolling(window).std()
+          )
+
+      # Fourier features (sezonellik için)
+      for k in range(1, 4):
+          df[f'sin_{k}'] = np.sin(2 * np.pi * k * df['dayofyear'] / 365.25)
+          df[f'cos_{k}'] = np.cos(2 * np.pi * k * df['dayofyear'] / 365.25)
+
+      return df
+
+── Değerlendirme Metrikleri ─────────────────────────────────────────
+
+  # MAPE (Mean Absolute Percentage Error) — iş iletişimi için
+  def mape(y_true, y_pred):
+      return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+  # Dikkat: y_true=0 olursa sonsuz hata → WAPE tercih et
+
+  # WAPE (Weighted Absolute Percentage Error) — daha robust
+  def wape(y_true, y_pred):
+      return np.sum(np.abs(y_true - y_pred)) / np.sum(np.abs(y_true)) * 100
+
+  # RMSE — büyük hataları daha çok cezalandırır
+  from sklearn.metrics import mean_squared_error
+  rmse = np.sqrt(mean_squared_error(y_true, y_pred))
+
+── Backtesting (doğru değerlendirme) ────────────────────────────────
+
+  Zaman serisi cross-validation — forward chaining:
+
+  from sklearn.model_selection import TimeSeriesSplit
+  tscv = TimeSeriesSplit(n_splits=5, gap=7)  # gap=7: 1 hafta boşluk
+
+  # Fold 1: Train [0:100]   Test [107:121]
+  # Fold 2: Train [0:200]   Test [207:221]
+  # ...
+
+  for train_idx, test_idx in tscv.split(X):
+      model.fit(X[train_idx], y[train_idx])
+      preds = model.predict(X[test_idx])
+      print(f"WAPE: {wape(y[test_idx], preds):.1f}%")
+
+  ÖNEMLI: Gelecek bilgisi sızdırma (leakage) riski:
+  → Rolling mean hesaplarken shift(1) kullan, shift(0) değil!
+  → Tatil flag'leri gelecek bilgisi değil (takvimden) — güvenli.
+  → Kampanya tarihleri gelecek bilgisi — ama plan biliniyorsa kullanılabilir.
+
+── Production Değerlendirmeleri ─────────────────────────────────────
+
+  SKU başına model vs global model:
+  → 10.000 ürün için 10.000 ayrı model → yönetilemez
+  → Global model + ürün embedding → ölçeklenebilir
+  → Hiyerarşik tahmin: Kategori → Alt kategori → SKU (top-down reconcile)
+
+  Yeniden eğitim sıklığı:
+  → Hızlı değişen ürünler (moda, elektronik): haftalık
+  → Stabil ürünler (FMCG): aylık
+
+  Uncertainty quantification:
+  → Sadece nokta tahmini değil, güven aralıkları üret
+  → Stok kararı için: "300-400 adet" → lojistik planlama için daha yararlı
+
+Senior Notu:
+  Mükemmel model değil, karar vermeye yarayan model yap.
+  WAPE=%15 ile WAPE=%12 arasındaki fark teknik başarı olabilir
+  ama iş kararını değiştirmiyorsa (aynı stok miktarı seçiliyorsa)
+  iyileştirme "boşa" gider. Tahmin modelini karar modeline bağla:
+  Yanlış tahmin → hangi iş kararı değişiyor → hangi maliyet değişiyor?
+```
+
 ---
 
 ## C) İstatistik ve Deney Senaryoları (10 Soru)
