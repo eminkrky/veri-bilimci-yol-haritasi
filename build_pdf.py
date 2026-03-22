@@ -192,7 +192,6 @@ MD_EXTENSIONS = [
     "attr_list",
     "def_list",
     "admonition",
-    "nl2br",
     "sane_lists",
 ]
 
@@ -208,150 +207,232 @@ MD_EXTENSION_CONFIGS = {
 }
 
 CSS_STYLE = """
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ─── Sayfa düzeni ─── */
+/* ════════════════════════════════════════
+   SAYFA DÜZENI
+   ════════════════════════════════════════ */
+
 @page {
     size: A4;
-    margin: 2.5cm 2cm 2.5cm 2.5cm;
+    margin: 2.8cm 2.2cm 2.8cm 2.8cm;
 
     @top-left {
         content: "Veri Bilimci Yol Haritası";
         font-family: 'Inter', sans-serif;
-        font-size: 8pt;
-        color: #c0c8d8;
+        font-size: 7.5pt;
+        color: #b0bcd0;
+        letter-spacing: 0.04em;
     }
     @top-right {
         content: string(chapter-title);
         font-family: 'Inter', sans-serif;
-        font-size: 8pt;
-        color: #888;
+        font-size: 7.5pt;
+        color: #8898aa;
+        font-style: italic;
+    }
+    @top-center {
+        content: "";
+        border-bottom: 0.5pt solid #e8edf3;
+        width: 100%;
+        display: block;
+    }
+    @bottom-right {
+        content: counter(page);
+        font-family: 'Inter', sans-serif;
+        font-size: 8.5pt;
+        color: #64748b;
+        font-weight: 500;
     }
     @bottom-left {
         content: string(chapter-title);
         font-family: 'Inter', sans-serif;
         font-size: 7.5pt;
-        color: #aab;
-    }
-    @bottom-right {
-        content: counter(page);
-        font-family: 'Inter', sans-serif;
-        font-size: 9pt;
-        color: #64748b;
-        font-weight: 500;
+        color: #b0bcd0;
     }
     @bottom-center { content: none; }
 }
 
-/* İlk sayfa (kapak) — header/footer yok */
-@page :first {
-    @bottom-left   { content: none; }
-    @bottom-right  { content: none; }
-    @top-left      { content: none; }
-    @top-right     { content: none; }
+/* Kapak sayfası — tam sayfa, header/footer yok */
+@page cover-page {
+    size: A4;
+    margin: 0;
+    @top-left    { content: none; }
+    @top-right   { content: none; }
+    @top-center  { content: none; }
+    @bottom-left { content: none; }
+    @bottom-right { content: none; }
+    @bottom-center { content: none; }
 }
 
-/* Ön madde sayfaları — Roman rakamı */
+/* Bölüm kapakları — tam sayfa, header/footer yok */
+@page chapter-cover {
+    size: A4;
+    margin: 0;
+    @top-left    { content: none; }
+    @top-right   { content: none; }
+    @top-center  { content: none; }
+    @bottom-left { content: none; }
+    @bottom-right { content: none; }
+    @bottom-center { content: none; }
+}
+
+/* Ön madde — Roman rakamı */
 @page front-matter {
     size: A4;
-    margin: 2.5cm 2cm 2.5cm 2.5cm;
+    margin: 2.8cm 2.2cm 2.8cm 2.8cm;
     @bottom-right {
         content: counter(page, lower-roman);
         font-family: 'Inter', sans-serif;
         font-size: 8.5pt;
         color: #94a3b8;
     }
-    @bottom-left  { content: none; }
-    @top-left     { content: none; }
-    @top-right    { content: none; }
+    @bottom-left   { content: none; }
+    @top-left      { content: none; }
+    @top-right     { content: none; }
+    @top-center    { content: none; }
     @bottom-center { content: none; }
 }
 
-.front-matter {
-    page: front-matter;
-}
+.front-matter { page: front-matter; }
 
-* {
-    box-sizing: border-box;
-}
+/* ════════════════════════════════════════
+   TEMEL STİLLER
+   ════════════════════════════════════════ */
+
+* { box-sizing: border-box; }
 
 body {
     font-family: 'Inter', 'DejaVu Sans', sans-serif;
     font-size: 10.5pt;
-    line-height: 1.7;
-    color: #1a1a2e;
+    line-height: 1.75;
+    color: #1e2432;
     background: #fff;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* ─── Kapak sayfası ─── */
+/* ════════════════════════════════════════
+   KAPAK SAYFASI
+   ════════════════════════════════════════ */
+
 .cover {
-    page-break-after: always;
+    page: cover-page;
+    width: 21cm;
+    min-height: 29.7cm;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 24cm;
     text-align: center;
-    background: linear-gradient(135deg, #0f3460 0%, #16213e 60%, #0f3460 100%);
+    background: linear-gradient(150deg, #0a1628 0%, #0f3460 40%, #1a1a2e 100%);
     color: white;
-    padding: 3cm;
-    margin: -2.5cm -2cm -2.5cm -2.5cm;
+    padding: 3cm 3.5cm;
+    position: relative;
+}
+
+.cover-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
 }
 
 .cover h1 {
-    font-size: 28pt;
+    font-size: 32pt;
     font-weight: 700;
-    color: #e2e8f0;
-    margin-bottom: 0.5em;
+    color: #f1f5f9;
+    margin-bottom: 0.3em;
     border: none;
-    line-height: 1.2;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
     string-set: none;
 }
 
 .cover .subtitle {
-    font-size: 14pt;
+    font-size: 13pt;
+    color: #7dd3fc;
+    margin-bottom: 2.5em;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+}
+
+.cover .cover-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    justify-content: center;
+    margin-bottom: 3em;
+}
+
+.cover .topic-pill {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 0.3em 0.9em;
+    border-radius: 20px;
+    font-size: 9pt;
     color: #94a3b8;
-    margin-bottom: 2em;
+    letter-spacing: 0.03em;
+}
+
+.cover .cover-divider {
+    width: 3cm;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+    margin: 0 auto 2.5em;
 }
 
 .cover .meta {
-    font-size: 10pt;
-    color: #64748b;
-    margin-top: 3em;
+    font-size: 9pt;
+    color: #475569;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
-/* ─── İçindekiler sayfası ─── */
+/* ════════════════════════════════════════
+   İÇİNDEKİLER
+   ════════════════════════════════════════ */
+
 .toc-page {
     page: front-matter;
+    page-break-before: always;
     page-break-after: always;
-    padding-top: 0.5cm;
+    padding-top: 0.3cm;
 }
 
 .toc-page h2 {
-    font-size: 20pt;
+    font-size: 22pt;
     font-weight: 700;
     color: #0f3460;
-    border-bottom: 3px solid #0f3460;
+    border: none;
     padding-bottom: 0.4em;
-    margin-bottom: 1.5em;
+    margin-bottom: 0.3em;
     string-set: none;
+    letter-spacing: -0.02em;
+}
+
+.toc-rule {
+    height: 3px;
+    background: linear-gradient(90deg, #0f3460, #3b82f6, transparent);
+    margin-bottom: 1.8em;
+    border: none;
 }
 
 .toc-section-label {
-    font-size: 8pt;
+    font-size: 7.5pt;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     color: #94a3b8;
-    margin: 1.2em 0 0.4em 0;
+    margin: 1.4em 0 0.5em 0;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .toc-entry {
     display: flex;
     align-items: baseline;
-    margin-bottom: 0.55em;
+    margin-bottom: 0.5em;
     font-size: 10.5pt;
-    gap: 0;
 }
 
 .toc-entry .t-num {
@@ -359,21 +440,21 @@ body {
     color: #1e40af;
     min-width: 5.5em;
     flex-shrink: 0;
+    font-size: 9.5pt;
+    letter-spacing: 0.02em;
 }
+
+.toc-entry .t-title { flex-grow: 1; }
 
 .toc-entry .t-title a {
-    color: #1a1a2e;
+    color: #1e2432;
     text-decoration: none;
-}
-
-.toc-entry .t-title {
-    flex-grow: 1;
 }
 
 .toc-entry .t-dots {
     flex: 1;
-    border-bottom: 1px dotted #cbd5e1;
-    margin: 0 0.6em;
+    border-bottom: 1px dotted #d1d9e6;
+    margin: 0 0.7em;
     min-width: 0.5em;
     align-self: flex-end;
     margin-bottom: 4px;
@@ -382,7 +463,7 @@ body {
 a.t-pageref {
     color: #64748b;
     font-weight: 500;
-    font-size: 10pt;
+    font-size: 9.5pt;
     text-decoration: none;
     min-width: 2em;
     text-align: right;
@@ -393,139 +474,193 @@ a.t-pageref::after {
     content: target-counter(attr(href), page);
 }
 
-/* ─── Bölüm kapak sayfası ─── */
+/* ════════════════════════════════════════
+   BÖLÜM KAPAK SAYFASI
+   ════════════════════════════════════════ */
+
 .chapter-separator {
-    page-break-before: always;
-    page-break-after: always;
+    page: chapter-cover;
+    width: 21cm;
+    min-height: 29.7cm;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    min-height: 24cm;
-    padding: 3cm 3cm 3.5cm 3cm;
-    background: linear-gradient(160deg, #0f3460 0%, #1a2f58 45%, #16213e 100%);
+    padding: 3cm 3.5cm 4cm 3.5cm;
+    background: linear-gradient(155deg, #080f1e 0%, #0d2248 35%, #0f3460 70%, #1a1a3e 100%);
     color: white;
-    margin: -2.5cm -2cm -2.5cm -2.5cm;
+    position: relative;
+    overflow: hidden;
+}
+
+.chapter-separator::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
 }
 
 .chapter-separator .ch-num {
-    font-size: 96pt;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.08);
+    font-size: 120pt;
+    font-weight: 800;
+    color: rgba(255,255,255,0.05);
     line-height: 1;
-    margin-bottom: -0.15em;
-    font-variant-numeric: tabular-nums;
+    position: absolute;
+    top: 1.5cm;
+    right: 2cm;
+    letter-spacing: -0.05em;
+}
+
+.chapter-separator .ch-label {
+    font-size: 9pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #60a5fa;
+    margin-bottom: 0.8em;
 }
 
 .chapter-separator .ch-title {
-    font-size: 26pt;
+    font-size: 28pt;
     font-weight: 700;
-    color: #e2e8f0;
+    color: #f1f5f9;
     border: none;
-    line-height: 1.2;
-    margin-bottom: 0.6em;
-    margin-top: 0;
+    line-height: 1.15;
+    margin: 0 0 0.7em 0;
+    letter-spacing: -0.02em;
     string-set: chapter-title content();
+    max-width: 14cm;
 }
 
 .chapter-separator .ch-desc {
     font-size: 11pt;
     color: #94a3b8;
-    max-width: 75%;
+    max-width: 13cm;
     line-height: 1.7;
-    margin-bottom: 2em;
+    margin-bottom: 2.5em;
+    font-weight: 300;
+}
+
+.chapter-separator .ch-divider {
+    width: 2.5cm;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, transparent);
+    margin-bottom: 1.5em;
 }
 
 .chapter-separator .ch-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6em;
-    font-size: 9pt;
-    color: #64748b;
+    gap: 0.5em;
 }
 
 .chapter-separator .ch-meta span {
-    background: rgba(255, 255, 255, 0.07);
-    padding: 0.3em 0.9em;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 0.3em 1em;
     border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 8.5pt;
+    color: #7dd3fc;
+    letter-spacing: 0.02em;
 }
 
-/* ─── Bölüm başlangıcı ─── */
+/* ════════════════════════════════════════
+   BÖLÜM İÇERİĞİ
+   ════════════════════════════════════════ */
+
 .chapter-start {
     page-break-before: always;
 }
 
-/* ─── Başlıklar ─── */
+/* ════════════════════════════════════════
+   BAŞLIKLAR
+   ════════════════════════════════════════ */
+
 h1 {
-    font-size: 20pt;
+    font-size: 22pt;
     font-weight: 700;
     color: #0f3460;
-    border-bottom: 3px solid #0f3460;
-    padding-bottom: 0.3em;
-    margin-top: 1.5em;
-    margin-bottom: 0.8em;
+    margin-top: 0;
+    margin-bottom: 1em;
     page-break-after: avoid;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
     string-set: chapter-title content();
+    padding-bottom: 0.4em;
+    border-bottom: 3px solid #0f3460;
 }
 
 h2 {
-    font-size: 14pt;
+    font-size: 14.5pt;
     font-weight: 600;
     color: #1e40af;
-    border-bottom: 1px solid #bfdbfe;
-    padding-bottom: 0.2em;
-    margin-top: 1.4em;
+    margin-top: 1.6em;
     margin-bottom: 0.6em;
     page-break-after: avoid;
+    letter-spacing: -0.01em;
+    padding-bottom: 0.25em;
+    border-bottom: 1.5px solid #dbeafe;
 }
 
 h3 {
     font-size: 12pt;
     font-weight: 600;
     color: #1d4ed8;
-    margin-top: 1.2em;
-    margin-bottom: 0.5em;
+    margin-top: 1.3em;
+    margin-bottom: 0.45em;
     page-break-after: avoid;
 }
 
 h4 {
-    font-size: 11pt;
+    font-size: 10.5pt;
     font-weight: 600;
     color: #2563eb;
-    margin-top: 1em;
-    margin-bottom: 0.4em;
+    margin-top: 1.1em;
+    margin-bottom: 0.35em;
     page-break-after: avoid;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 9.5pt;
 }
 
+/* ════════════════════════════════════════
+   PARAGRAFLAR
+   ════════════════════════════════════════ */
+
 p {
-    margin: 0.5em 0 0.8em 0;
+    margin: 0 0 0.75em 0;
     text-align: justify;
     orphans: 3;
     widows: 3;
+    hyphens: auto;
 }
 
-/* ─── Kod blokları ─── */
+/* ════════════════════════════════════════
+   KOD BLOKLARI
+   ════════════════════════════════════════ */
+
 pre {
-    background: #0d1117;
-    color: #e6edf3;
-    border-radius: 6px;
-    padding: 1em 1.2em;
+    background: #111827;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 1.1em 1.3em;
     font-family: 'JetBrains Mono', 'DejaVu Sans Mono', 'Courier New', monospace;
-    font-size: 8.5pt;
-    line-height: 1.5;
-    overflow-x: auto;
+    font-size: 8.2pt;
+    line-height: 1.6;
     page-break-inside: avoid;
-    margin: 0.8em 0;
-    border-left: 4px solid #1e40af;
+    margin: 1em 0 1.2em;
+    border-top: 3px solid #3b82f6;
+    border-bottom: 1px solid #1e293b;
 }
 
 code {
     font-family: 'JetBrains Mono', 'DejaVu Sans Mono', monospace;
-    font-size: 8.5pt;
-    background: #f1f5f9;
-    color: #0f172a;
-    padding: 0.15em 0.4em;
-    border-radius: 3px;
+    font-size: 8.3pt;
+    background: #eff6ff;
+    color: #1e40af;
+    padding: 0.15em 0.45em;
+    border-radius: 4px;
+    border: 1px solid #bfdbfe;
 }
 
 pre code {
@@ -533,63 +668,81 @@ pre code {
     color: inherit;
     padding: 0;
     font-size: inherit;
+    border: none;
 }
 
-/* ─── Syntax highlighting ─── */
-.highlight { background: #0d1117 !important; }
-.highlight .k  { color: #ff7b72; }
-.highlight .kn { color: #ff7b72; }
-.highlight .s  { color: #a5d6ff; }
-.highlight .s1 { color: #a5d6ff; }
-.highlight .s2 { color: #a5d6ff; }
-.highlight .c1 { color: #8b949e; font-style: italic; }
-.highlight .n  { color: #e6edf3; }
-.highlight .o  { color: #ff7b72; }
-.highlight .mi { color: #79c0ff; }
-.highlight .mf { color: #79c0ff; }
-.highlight .nb { color: #ffa657; }
-.highlight .nf { color: #d2a8ff; }
-.highlight .nc { color: #ffa657; }
-.highlight .nn { color: #ffa657; }
-.highlight .p  { color: #e6edf3; }
+/* Syntax highlighting */
+.highlight { background: #111827 !important; border-radius: 8px; }
+.highlight .k,
+.highlight .kn,
+.highlight .kr { color: #f472b6; }
+.highlight .s,
+.highlight .s1,
+.highlight .s2 { color: #86efac; }
+.highlight .c,
+.highlight .c1,
+.highlight .cm { color: #6b7280; font-style: italic; }
+.highlight .n  { color: #e2e8f0; }
+.highlight .o  { color: #f9a8d4; }
+.highlight .mi,
+.highlight .mf { color: #93c5fd; }
+.highlight .nb { color: #fbbf24; }
+.highlight .nf { color: #a78bfa; }
+.highlight .nc { color: #fb923c; }
+.highlight .nn { color: #fb923c; }
+.highlight .p  { color: #e2e8f0; }
+.highlight .bp { color: #fbbf24; }
 
-/* ─── Tablolar ─── */
+/* ════════════════════════════════════════
+   TABLOLAR
+   ════════════════════════════════════════ */
+
 table {
     width: 100%;
     border-collapse: collapse;
     font-size: 9.5pt;
-    margin: 1em 0;
-    page-break-inside: avoid;
+    margin: 1em 0 1.2em;
+}
+
+thead tr {
+    background: linear-gradient(135deg, #1e3a8a, #1e40af);
 }
 
 th {
-    background: #1e40af;
     color: white;
-    padding: 0.5em 0.8em;
+    padding: 0.55em 0.9em;
     text-align: left;
     font-weight: 600;
+    letter-spacing: 0.03em;
+    font-size: 9pt;
 }
 
 td {
-    padding: 0.4em 0.8em;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 0.42em 0.9em;
+    border-bottom: 1px solid #e8edf5;
     vertical-align: top;
+    line-height: 1.55;
 }
 
-tr:nth-child(even) td {
-    background: #f8fafc;
-}
+tr:nth-child(even) td { background: #f8faff; }
+tr:hover td { background: #f0f4ff; }
 
-/* ─── Blockquote ─── */
+tbody tr:last-child td { border-bottom: 2px solid #dbeafe; }
+
+/* ════════════════════════════════════════
+   ALINTILA / NOTLAR
+   ════════════════════════════════════════ */
+
 blockquote {
     border-left: 4px solid #f59e0b;
-    background: #fffbeb;
-    margin: 1em 0;
-    padding: 0.7em 1em;
-    border-radius: 0 6px 6px 0;
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    margin: 1.1em 0;
+    padding: 0.8em 1.1em;
+    border-radius: 0 8px 8px 0;
     color: #78350f;
     font-size: 9.5pt;
     page-break-inside: avoid;
+    box-shadow: inset 0 0 0 1px rgba(245,158,11,0.15);
 }
 
 blockquote p {
@@ -597,59 +750,74 @@ blockquote p {
     text-align: left;
 }
 
-/* ─── Listeler ─── */
+/* ════════════════════════════════════════
+   LİSTELER
+   ════════════════════════════════════════ */
+
 ul, ol {
-    margin: 0.5em 0 0.8em 0;
-    padding-left: 1.8em;
+    margin: 0.3em 0 0.8em 0;
+    padding-left: 1.7em;
 }
 
 li {
-    margin-bottom: 0.25em;
+    margin-bottom: 0.3em;
+    line-height: 1.65;
 }
 
-/* ─── Yatay çizgi ─── */
+li > ul, li > ol { margin: 0.2em 0 0.3em; }
+
+/* ════════════════════════════════════════
+   AYIRICILAR
+   ════════════════════════════════════════ */
+
 hr {
     border: none;
-    border-top: 2px solid #e2e8f0;
-    margin: 1.5em 0;
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, #dbeafe 20%, #dbeafe 80%, transparent);
+    margin: 1.8em 0;
 }
 
-/* ─── Bağlantılar ─── */
+/* ════════════════════════════════════════
+   BAĞLANTILAR
+   ════════════════════════════════════════ */
+
 a {
     color: #1d4ed8;
     text-decoration: none;
 }
 
-/* ─── Sayfa kırma ─── */
-.page-break {
-    page-break-after: always;
-}
+/* ════════════════════════════════════════
+   ÖN KOŞUL KUTUSU
+   ════════════════════════════════════════ */
 
-/* ─── Önkoşul kutusu ─── */
 .prereq-box {
-    background: #f0f9ff;
-    border-left: 4px solid #0ea5e9;
-    padding: 0.7em 1em;
-    border-radius: 0 6px 6px 0;
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border-left: 4px solid #0284c7;
+    padding: 0.8em 1.1em;
+    border-radius: 0 8px 8px 0;
     margin: 0 0 1.5em 0;
     font-size: 9.5pt;
     color: #0c4a6e;
     page-break-inside: avoid;
+    box-shadow: inset 0 0 0 1px rgba(2,132,199,0.12);
 }
 
-.prereq-box strong {
-    color: #0369a1;
-}
+.prereq-box strong { color: #0369a1; }
 
-/* ─── Navigasyon footer ─── */
+/* ════════════════════════════════════════
+   NAVİGASYON FOOTER
+   ════════════════════════════════════════ */
+
 .nav-footer {
-    margin-top: 2.5em;
-    padding-top: 1em;
-    border-top: 2px solid #e2e8f0;
+    margin-top: 3em;
+    padding: 0.9em 1.2em;
+    background: #f8faff;
+    border: 1px solid #e2eaf5;
+    border-radius: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 9pt;
+    font-size: 8.5pt;
     color: #64748b;
     page-break-inside: avoid;
 }
@@ -657,12 +825,24 @@ a {
 .nav-footer a {
     color: #1d4ed8;
     text-decoration: none;
+    font-weight: 500;
 }
 
-/* ─── Dosya etiketi ─── */
+.nav-footer span:nth-child(2) {
+    font-size: 7.5pt;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+}
+
+/* ════════════════════════════════════════
+   YARDIMCI
+   ════════════════════════════════════════ */
+
+.page-break { page-break-after: always; }
+
 .file-label {
     display: block;
-    font-size: 8pt;
+    font-size: 7.5pt;
     color: #94a3b8;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -691,15 +871,21 @@ def md_to_html(text):
 def build_cover():
     return """
 <div class="cover" id="cover-page">
+  <div class="cover-accent"></div>
   <h1>Veri Bilimci<br>Yol Haritası</h1>
-  <div class="subtitle">0 → Senior Kapsamlı Öğrenme Rehberi</div>
-  <p style="color:#94a3b8; font-size:11pt;">
-    Matematik · İstatistik · Makine Öğrenmesi<br>
-    Derin Öğrenme · MLOps · Sistem Tasarımı
-  </p>
-  <div class="meta">
-    Mart 2026
+  <div class="subtitle">0 → Senior · Kapsamlı Türkçe Öğrenme Rehberi</div>
+  <div class="cover-divider"></div>
+  <div class="cover-topics">
+    <span class="topic-pill">Matematik</span>
+    <span class="topic-pill">İstatistik</span>
+    <span class="topic-pill">Klasik ML</span>
+    <span class="topic-pill">Derin Öğrenme</span>
+    <span class="topic-pill">NLP / LLM</span>
+    <span class="topic-pill">MLOps</span>
+    <span class="topic-pill">Sistem Tasarımı</span>
+    <span class="topic-pill">Büyük Veri</span>
   </div>
+  <div class="meta">MART 2026</div>
 </div>
 """
 
@@ -755,7 +941,7 @@ def build_toc():
     <a class="t-pageref" href="#{aid}"></a>
   </div>""")
 
-    return f'<div class="front-matter toc-page" id="toc"><h2>İçindekiler</h2>{"".join(rows)}</div>'
+    return f'<div class="front-matter toc-page" id="toc"><h2>İçindekiler</h2><hr class="toc-rule">{"".join(rows)}</div>'
 
 
 def build_chapter_separator(fname):
@@ -769,12 +955,15 @@ def build_chapter_separator(fname):
     prereq = meta.get("prereq", "")
 
     num_html = f'<div class="ch-num">{num}</div>' if num else ""
+    label_html = f'<div class="ch-label">Katman {num}</div>' if num else '<div class="ch-label">Bölüm</div>'
     prereq_html = f'<span>Önkoşul: {prereq}</span>' if prereq else ""
 
     return f"""
 <div class="chapter-separator" id="{aid}">
   {num_html}
+  {label_html}
   <h2 class="ch-title">{title}</h2>
+  <div class="ch-divider"></div>
   <p class="ch-desc">{desc}</p>
   <div class="ch-meta">
     <span>Süre: {time_est}</span>
