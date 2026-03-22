@@ -1,139 +1,160 @@
-# Veri Bilimci Yol Haritası — Emin
+# Veri Bilimci Yol Haritası — 0 → Senior
 
-> **Amaç:** Veri bilimi alanında işe girilebilir seviyeden başlayıp senior seviyeye kadar giden, Türkçe anlatımlı, tam kapsamlı bir öğrenme ve proje yolculuğu.
-
-**📊 Proje İstatistikleri:** 16 dosya | ~14.700 satır | 8 proje | 35 SQL sorusu | 9 katman
-
-**⏱️ Tahmini Süre:** Bu yol haritasını başından sonuna tamamlamak: **~6-9 ay** (haftada 15-20 saat) veya **~2-3 ay** (tam zamanlı)
-
-Bu rehber tek bir büyük dosya yerine **katmanlı, bölünmüş** bir yapıya ayrılmıştır. Her dosya bağımsız okunabilir, birlikte de bir bütün oluşturur.
+> **Türkçe yazılmış, kapsamlı, ücretsiz veri bilimi öğrenme rehberi.**
+> Sıfırdan başlayan → senior seviyeye ulaşmak isteyen herkes için.
 
 ---
 
-## Quick Start — Profiline Göre Hızlı Başlangıç
+## Genel Bakış
 
-| Profil | Önerilen Yol | Tahmini Süre |
-|--------|-------------|:------------:|
-| **Sıfırdan başlayan** | Aşama 0 → 1 → 2 → 3 (`katman-0` → `katman-A` → `katman-B` → `katman-C`) | 4-6 ay |
-| **Python/SQL bilen** | Aşama 2 → 3 → 4 → 5 (`katman-B` → `katman-C` → `katman-D` → `katman-E`) | 3-4 ay |
-| **ML bilen, senior hedefleyen** | Aşama 4 → 5 → 6 → 7 (`katman-D` → `katman-E` → `katman-F` → `katman-G`) | 2-3 ay |
+Bu rehber, veri biliminde **işe girilebilir seviyeden senior'a** kadar giden, Türkçe anlatımlı, tam kapsamlı bir öğrenme yolculuğudur. Tek bir dosya yerine **katmanlı, modüler** yapıda tasarlanmıştır: her dosya bağımsız okunabilir, birlikte tam bir müfredat oluşturur.
 
-> Her profil için ilgili katmanları sırasıyla çalış, arada [`projeler.md`](./projeler.md) dosyasından eşleşen projeyi yap.
+| | |
+|---|---|
+| **Toplam içerik** | ~15.000 satır, 16 dosya |
+| **Öğrenme katmanı** | 9 katman (Katman 0 → H) |
+| **Portföy projesi** | 8 proje (Proje-0 → Proje-7) |
+| **SQL sorusu** | 35+ (temel → ileri) |
+| **Tahmini süre** | 6–9 ay (haftada 15–20 saat) · 2–3 ay (tam zamanlı) |
+| **Son güncelleme** | Mart 2026 |
+
+---
+
+## Hızlı Başlangıç
+
+Profiline göre nereye atlayacağını bul:
+
+| Profil | Başlangıç Noktası | Tahmini Süre |
+|--------|-------------------|:------------:|
+| Sıfırdan başlıyorum | `katman-0` → `katman-A` → `katman-B` → `katman-C` | 4–6 ay |
+| Python/SQL biliyorum, ML yeni | `katman-B` → `katman-C` → `katman-D` → `katman-E` | 3–4 ay |
+| ML biliyorum, senior hedefliyorum | `katman-D` → `katman-E` → `katman-F` → `katman-G` | 2–3 ay |
+| Mülakat yaklaşıyor | `mulakat.md` + `00-uygulama-sirasi.md` | 4–6 hafta |
+| Hızlı portföy lazım | `projeler.md` → Proje-0 + Proje-1 | 3–6 hafta |
+
+---
+
+## Öğrenme Katmanları
+
+```
+Katman 0 — Matematik
+    Lineer cebir · Kalkülüs · Olasılık teorisi
+    ↓
+Katman A — Temeller
+    Python/Pandas · NumPy · SQL · İstatistik · EDA · Görselleştirme
+    ↓
+Katman B — Klasik Makine Öğrenmesi
+    Doğrusal modeller · LightGBM · SHAP · Optuna · Fairness
+    ↓
+Katman C — Deney Tasarımı ve Nedensellik
+    A/B test · Power analizi · CUPED · DiD · DoWhy · RDD
+    ↓
+Katman D — Derin Öğrenme
+    PyTorch · NLP/Transformer · CV · RecSys · LLM/RAG · LoRA
+    ↓
+Katman E — MLOps
+    FastAPI · Docker · MLflow · Evidently · CI/CD · Drift tespiti
+    ↓
+Katman F — ML Sistem Tasarımı
+    Feature store · Latency bütçesi · Canary deploy · FinOps
+    ↓
+Katman G — Senior Davranışlar
+    Etki odaklı çalışma · OKR · Mentorluk · Etik · Dokümantasyon
+    ↓
+Katman H — Büyük Veri  (gerektiğinde)
+    Spark · Polars · DuckDB · Delta Lake · Streaming · Ray
+```
+
+---
+
+## Dosya Rehberi
+
+### Temel Belgeler
+| Dosya | Açıklama | Süre |
+|-------|----------|------|
+| [`00-uygulama-sirasi.md`](./00-uygulama-sirasi.md) | 8 aşamalı sıralı öğrenme planı, kontrol listeleri, teslimatlar | 15 dk okuma |
+| [`01-yetkinlik-matrisi.md`](./01-yetkinlik-matrisi.md) | Junior → Senior yetkinlik matrisi, nicel ölçütler | 20 dk okuma |
+
+### Öğrenme Katmanları
+| Dosya | İçerik | Süre |
+|-------|--------|------|
+| [`katman-0-matematik.md`](./katman-0-matematik.md) | Lineer cebir, kalkülüs, olasılık, SVD | 3–5 gün |
+| [`katman-A-temeller.md`](./katman-A-temeller.md) | Python, Pandas, SQL (CTE, window), istatistik, EDA, Pandera | 3–4 hafta |
+| [`katman-B-klasik-ml.md`](./katman-B-klasik-ml.md) | LightGBM, SHAP, Optuna, calibration, fairness, AutoML | 3–4 hafta |
+| [`katman-C-deney-nedensellik.md`](./katman-C-deney-nedensellik.md) | A/B test, CUPED, Synthetic Control, RDD, IV, DiD | 2–3 hafta |
+| [`katman-D-derin-ogrenme.md`](./katman-D-derin-ogrenme.md) | PyTorch, NLP, CV, RecSys, LLM/RAG, GNN, model compression | 4–6 hafta |
+| [`katman-E-mlops.md`](./katman-E-mlops.md) | FastAPI, Docker, MLflow, Evidently, GitHub Actions, feature store | 2–3 hafta |
+| [`katman-F-sistem-tasarimi.md`](./katman-F-sistem-tasarimi.md) | Sistem mimarisi, feature store, latency, canary deploy, data mesh | 2–3 hafta |
+| [`katman-G-senior-davranislar.md`](./katman-G-senior-davranislar.md) | ICE, OKR, STAR vaka çalışmaları, etik, liderlik, dokümantasyon | Sürekli |
+| [`katman-H-buyuk-veri.md`](./katman-H-buyuk-veri.md) | Spark, Polars, DuckDB, Delta Lake, streaming ML, Ray | 2–3 hafta |
+
+### Uygulama ve Referans
+| Dosya | Açıklama | Süre |
+|-------|----------|------|
+| [`projeler.md`](./projeler.md) | 8 portfolyo projesi (Proje-0 → Proje-7), standartlar, soğuk başlangıç stratejisi | Proje başına 1–4 hafta |
+| [`mulakat.md`](./mulakat.md) | 35+ SQL sorusu, ML case study, sistem tasarım senaryoları, behavioral | 2–4 hafta |
+| [`kaynaklar.md`](./kaynaklar.md) | Ücretsiz kurslar, kitaplar, podcast, newsletter, Türkçe kaynaklar | Referans |
+| [`calisma-gunlugu.md`](./calisma-gunlugu.md) | İlerleme günlüğü, şablonlar | Sürekli |
 
 ---
 
 ## Nasıl Kullanılır?
 
-1. Önce bu README'yi oku — genel resmi gör.
-2. [`00-uygulama-sirasi.md`](./00-uygulama-sirasi.md) dosyasıyla başla — hangi sırayla ne öğreneceğini belirle.
-3. [`01-yetkinlik-matrisi.md`](./01-yetkinlik-matrisi.md) ile hedefini netleştir — "Senior ne demek?"
-4. Katman dosyalarını sırayla çalış: `katman-0` → `katman-A` → ... → `katman-H`
-5. Her katmanı bitirince ilgili projeyi [`projeler.md`](./projeler.md) dosyasından yap.
-6. Mülakat zamanı yaklaştığında [`mulakat.md`](./mulakat.md) dosyasına gir.
-7. [`kaynaklar.md`](./kaynaklar.md) her zaman açık tutulabilir, derinleşmek için.
+1. **Bu README'yi oku** — genel resmi gör, profilini belirle.
+2. **[`00-uygulama-sirasi.md`](./00-uygulama-sirasi.md)** ile başla — öğrenme sırasını netleştir.
+3. **[`01-yetkinlik-matrisi.md`](./01-yetkinlik-matrisi.md)** ile hedefini ölç — "Senior ne demek?"
+4. **Katmanları sırayla** çalış: `katman-0` → `A` → `B` → … → `H`
+5. **Her katmanı bitirince** ilgili projeyi [`projeler.md`](./projeler.md)'den yap.
+6. **Mülakat hazırlığında** [`mulakat.md`](./mulakat.md)'e gir, STAR hikayelerini hazırla.
+7. **[`kaynaklar.md`](./kaynaklar.md)** her zaman referans olarak açık tutulabilir.
+
+> **Altın kural:** Her katman için "Teslim edilebilir bir çıktı" üret — proje, notebook veya özet. Çıktı olmayan öğrenme yapışmaz.
 
 ---
 
-## Dosya Listesi
+## İçerik Yazım Anlayışı
 
-| Dosya | İçerik | Tahmini Süre |
-|-------|--------|-------------|
-| [`00-uygulama-sirasi.md`](./00-uygulama-sirasi.md) | Aşama 0–7 öğrenme planı, kontrol listeleri, süreler, teslimatlar | 15 dk okuma |
-| [`01-yetkinlik-matrisi.md`](./01-yetkinlik-matrisi.md) | Junior→Staff/Principal yetkinlik matrisi, nicel ölçütler, puan sistemi | 20 dk okuma |
-| [`katman-0-matematik.md`](./katman-0-matematik.md) | Lineer cebir, kalkülüs, olasılık, SVD, convexity, 5 alıştırma | 3–5 gün çalışma |
-| [`katman-A-temeller.md`](./katman-A-temeller.md) | Python, Pandas, SQL, istatistik, EDA, Pandera, Great Expectations, DuckDB | 3–4 hafta |
-| [`katman-B-klasik-ml.md`](./katman-B-klasik-ml.md) | LightGBM, SHAP, Optuna, imbalanced learning, LIME, AutoML, fairness metrikleri | 2–4 hafta |
-| [`katman-C-deney-nedensellik.md`](./katman-C-deney-nedensellik.md) | A/B test, A/A test, SPRT, CUPED, Synthetic Control, RDD, IV, DiD, DoWhy | 1–3 hafta |
-| [`katman-D-derin-ogrenme.md`](./katman-D-derin-ogrenme.md) | DL, NLP, CV, RecSys, LLM/RAG, GNN, alignment, model compression, distributed training | 4–8 hafta |
-| [`katman-E-mlops.md`](./katman-E-mlops.md) | FastAPI, Docker, MLflow, Evidently, CI/CD, data lineage, schema validation | 2–4 hafta |
-| [`katman-F-sistem-tasarimi.md`](./katman-F-sistem-tasarimi.md) | Sistem tasarımı, feature store, FinOps, model compression, canary deployment, data mesh | 1–2 hafta |
-| [`katman-G-senior-davranislar.md`](./katman-G-senior-davranislar.md) | ICE, OKR, STAR vaka çalışmaları, etik/KVKK, liderlik, dokümantasyon | Sürekli |
-| [`katman-H-buyuk-veri.md`](./katman-H-buyuk-veri.md) | Spark, Polars, DuckDB, Delta Lake, streaming ML, Apache Iceberg, Ray, Dask-ML | 1–2 hafta |
-| [`projeler.md`](./projeler.md) | Proje-0'dan Proje-7'ye çalıştırılabilir portföy seti, cold start stratejisi | Proje başına 1–4 hafta |
-| [`mulakat.md`](./mulakat.md) | 35 SQL sorusu, ileri SQL, ML case study, sistem tasarım senaryoları, behavioral sorular | 2–4 hafta |
-| [`kaynaklar.md`](./kaynaklar.md) | Ücretsiz kurslar, kitaplar, podcast, newsletter, Türkçe kaynaklar, topluluklar | Referans |
-| [`calisma-gunlugu.md`](./calisma-gunlugu.md) | İlerleme günlüğü, örnek seanslar, şablonlar, ilerleme tablosu | Sürekli güncellenir |
-
----
-
-## Öğrenme Katmanları (Görsel Özet)
+Her konu bu sırayla anlatılır:
 
 ```
-Katman 0 — Matematik (Lineer cebir, kalkülüs, olasılık)
-     ↓
-Katman A — Temeller (Python, İstatistik, SQL, Görselleştirme)
-     ↓
-Katman B — Klasik ML (Modeller, değerlendirme, feature engineering)
-     ↓
-Katman C — Deney/Nedensellik (A/B, CUPED, causal)
-     ↓
-Katman D — Derin Öğrenme + Uzmanlık (DL, NLP, CV, RecSys, LLM/RAG)
-     ↓
-Katman E — MLOps (Servis, izleme, drift, CI/CD)
-     ↓
-Katman F — Sistem Tasarımı (Feature store, latency, mimari)
-     ↓
-Katman G — Senior Davranışlar (Etki, iletişim, liderlik)
-     ↓
-Katman H — Büyük Veri (Spark, Dask, cloud — gerektiğinde)
+1. Sezgisel açıklama   → Analoji veya günlük hayat örneği
+2. Matematik detayı    → Formül, türev, loss fonksiyonu (isteğe bağlı)
+3. Kod örneği          → Çalıştırılabilir Python / SQL snippet
+4. Senior Notu         → Üretimde dikkat, yaygın hatalar, best practice
+5. Sektör Notu         → 2025–2026 trendleri, araç önerileri
+```
+
+**Araç tercihleri:** Cloud-agnostic, açık kaynak öncelikli (MLflow, Docker, FastAPI, Evidently). AWS/GCP yan bilgi olarak yer alır.
+
+---
+
+## PDF
+
+Tüm içerik tek bir kitap formatında PDF olarak da mevcuttur: [`veri-bilimci-yol-haritasi.pdf`](./veri-bilimci-yol-haritasi.pdf)
+
+PDF'i yeniden oluşturmak için:
+
+```bash
+pip install markdown weasyprint
+python3 build_pdf.py
 ```
 
 ---
 
-## Kaynak Tabanı
+## Katkı ve Kaynaklar
 
-Bu rehber aşağıdaki kaynaklara dayanmaktadır:
+Bu rehber şu kaynaklara dayanmaktadır:
 
-- roadmap.sh/ai-data-scientist
-- Andrew Ng ML & MLOps Specialization (Coursera/DeepLearning.AI)
-- fast.ai (pratik DL)
-- Kaggle Grandmaster tavsiyeleri
-- Stanford İstatistik müfredatı
-- FAANG mülakat rehberleri (DataLemur, InterviewQuery)
-- Chip Huyen — Designing Machine Learning Systems
-- Causal Inference: The Mixtape (Scott Cunningham)
+- [roadmap.sh/ai-data-scientist](https://roadmap.sh/ai-data-scientist)
+- Andrew Ng — ML & MLOps Specialization (DeepLearning.AI)
+- fast.ai — Practical Deep Learning
+- Chip Huyen — *Designing Machine Learning Systems*
+- Scott Cunningham — *Causal Inference: The Mixtape*
+- DataLemur, InterviewQuery — mülakat soruları
 
 ---
 
-## Stil Kılavuzu
-
-Her katman dosyasında şu yapı tekrarlanır:
-
-```
-## [Konu]
-
-### Sezgisel Açıklama
-Analoji veya basit örnek ile kavramı anla.
-
-### Matematik Detayı
-Formül, türev veya loss fonksiyonu (gerektiğinde).
-
-### Kod Örneği
-Çalıştırılabilir Python kodu.
-
-> **Senior Notu:** Üretimde dikkat edilecek nokta.
-
-### Sektör Notu
-Araştırma sonuçları, hangi araçlar öne çıkıyor, ne tercih ediliyor.
-```
-
----
-
-## Başlangıç Noktaları
-
-### "Nereden başlayacağım?" sorusuna göre:
-
-| Durum | Başlangıç Noktası |
-|-------|------------------|
-| Sıfırdan başlıyorum | `katman-0-matematik.md` → `katman-A-temeller.md` |
-| Python biliyorum, ML yeni | `katman-B-klasik-ml.md` |
-| ML biliyorum, prod tecrübem yok | `katman-E-mlops.md` + `katman-F-sistem-tasarimi.md` |
-| Mülakat yaklaşıyor | `mulakat.md` + `00-uygulama-sirasi.md` |
-| Hızlı portföy lazım | `projeler.md` → Proje-0 + Proje-1 |
-
----
-
-*Son güncelleme: 2026-03-22*
+*Son güncelleme: Mart 2026*
 
 ---
 
