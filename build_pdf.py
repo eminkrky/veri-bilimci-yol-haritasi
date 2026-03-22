@@ -265,17 +265,6 @@ CSS_STYLE = """
     @bottom-center { content: none; }
 }
 
-/* Bölüm kapakları — tam sayfa, header/footer yok */
-@page chapter-cover {
-    size: A4;
-    margin: 0;
-    @top-left    { content: none; }
-    @top-right   { content: none; }
-    @top-center  { content: none; }
-    @bottom-left { content: none; }
-    @bottom-right { content: none; }
-    @bottom-center { content: none; }
-}
 
 /* Ön madde — Roman rakamı */
 @page front-matter {
@@ -479,8 +468,11 @@ a.t-pageref::after {
    ════════════════════════════════════════ */
 
 .chapter-separator {
-    page: chapter-cover;
-    width: 21cm;
+    page-break-before: always;
+    page-break-after: always;
+    /* Sayfa kenarına taşmak için @page margin'ini tersine al */
+    margin: -2.8cm -2.2cm -2.8cm -2.8cm;
+    width: calc(21cm);
     min-height: 29.7cm;
     display: flex;
     flex-direction: column;
@@ -597,6 +589,7 @@ h2 {
     margin-top: 1.6em;
     margin-bottom: 0.6em;
     page-break-after: avoid;
+    page-break-before: avoid;
     letter-spacing: -0.01em;
     padding-bottom: 0.25em;
     border-bottom: 1.5px solid #dbeafe;
@@ -609,10 +602,11 @@ h3 {
     margin-top: 1.3em;
     margin-bottom: 0.45em;
     page-break-after: avoid;
+    page-break-before: avoid;
 }
 
 h4 {
-    font-size: 10.5pt;
+    font-size: 9.5pt;
     font-weight: 600;
     color: #2563eb;
     margin-top: 1.1em;
@@ -620,7 +614,6 @@ h4 {
     page-break-after: avoid;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    font-size: 9.5pt;
 }
 
 /* ════════════════════════════════════════
@@ -630,8 +623,6 @@ h4 {
 p {
     margin: 0 0 0.75em 0;
     text-align: justify;
-    orphans: 3;
-    widows: 3;
     hyphens: auto;
 }
 
@@ -647,7 +638,6 @@ pre {
     font-family: 'JetBrains Mono', 'DejaVu Sans Mono', 'Courier New', monospace;
     font-size: 8.2pt;
     line-height: 1.6;
-    page-break-inside: avoid;
     margin: 1em 0 1.2em;
     border-top: 3px solid #3b82f6;
     border-bottom: 1px solid #1e293b;
@@ -702,6 +692,7 @@ table {
     border-collapse: collapse;
     font-size: 9.5pt;
     margin: 1em 0 1.2em;
+    page-break-inside: auto;
 }
 
 thead tr {
