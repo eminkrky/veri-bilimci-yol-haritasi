@@ -87,6 +87,34 @@ Tüm 16 dosya üzerinde sistematik iyileştirme yapıldı:
 
 ---
 
+## 2026-03-22 — İkinci Tur Kapsamlı Review + PDF İyileştirme
+
+**Ne yapıldı:**
+
+**Kritik hata düzeltmeleri:**
+- `01-yetkinlik-matrisi.md`: 6 kırık link düzeltildi (03-problem-cerceveleme.md vb. → gerçek katman dosyaları)
+- `katman-A-temeller.md`: 4 kırık link düzeltildi + `katman-E-data-pipeline.md` → `katman-E-mlops.md`
+- `00-uygulama-sirasi.md`: Aşama 5-7 boyunca ASCII karakter bozulması giderildi (ş→ş, ğ→ğ, ü→ü, ö→ö vb.)
+
+**İçerik genişletme:**
+- `katman-E-mlops.md`: 963 → 1392 satır; E.9 Prometheus/Grafana monitoring, E.10 MLflow Model Versioning, E.11 LLMOps (Langfuse + RAGAS) eklendi
+- `katman-G-senior-davranislar.md`: 902 → ~1350 satır; ICE kodu tamamlandı, automated stakeholder raporu, 3 OKR örneği, STAR hikayeleri, Teknik Borç Quadrantı eklendi
+- `katman-C-deney-nedensellik.md`: Çoklu test düzeltmeleri (Bonferroni/BH/Holm, `multipletests()`) + IV zayıf araç senior notu
+- `katman-D-derin-ogrenme.md`: Fine-tuning vs RAG karar rehberi + RAGAS evaluation kodu
+- `katman-A-temeller.md`: Pandas vs Polars — 2026 Seçim Rehberi bölümü eklendi
+- `kaynaklar.md`: Tüm URL'ler eklendi, blog ve newsletter bölümleri güncellendi
+
+**PDF / build iyileştirmeleri:**
+- `requirements.txt`: Oluşturuldu
+- `build_pdf.py`: CSS `pre { white-space: pre-wrap; word-break: break-word; }` düzeltmesi
+- `build_pdf.py`: Kapak başlık font-size 32pt → 27pt (3-satır sorunu giderildi)
+- `build_pdf.py`: `.nav-footer` margin-top 3em → 1.5em + `page-break-before: avoid` (boş sayfa giderildi)
+- `build_pdf.py`: `td code { font-size: 7pt }` (tablo hücresinde kod taşması giderildi)
+- PDF metadata eklendi (author, description, keywords)
+- PDF yeniden üretildi: 2.1 MB
+
+---
+
 ## Çalışma Seansı Şablonu
 
 ```markdown

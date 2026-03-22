@@ -327,7 +327,7 @@ body {
 }
 
 .cover h1 {
-    font-size: 32pt;
+    font-size: 27pt;
     font-weight: 700;
     color: #f1f5f9;
     margin-bottom: 0.3em;
@@ -664,6 +664,11 @@ pre code {
     border: none;
 }
 
+td code {
+    font-size: 7pt;
+    padding: 0.08em 0.25em;
+}
+
 /* Syntax highlighting */
 .highlight { background: #111827 !important; border-radius: 8px; }
 .highlight .k,
@@ -803,7 +808,7 @@ a {
    ════════════════════════════════════════ */
 
 .nav-footer {
-    margin-top: 3em;
+    margin-top: 1.5em;
     padding: 0.9em 1.2em;
     background: #f8faff;
     border: 1px solid #e2eaf5;
@@ -814,6 +819,7 @@ a {
     font-size: 8.5pt;
     color: #64748b;
     page-break-inside: avoid;
+    page-break-before: avoid;
 }
 
 .nav-footer a {

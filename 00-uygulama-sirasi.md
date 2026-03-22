@@ -316,65 +316,65 @@ Birini seç (sonra diğerlerine geç):
 
 #### NLP — Doğal Dil İşleme
 
-Metin sınıflandırma ile başla (müşteri şikayeti kategorilendirme). Önce TF-IDF + Logistic Regression baseline kur, sonra Hugging Face Transformers ile fine-tuned BERT/DistilBERT modeline geç. Tokenizer mantığını, attention mekanizmasını sezgisel düzeyde öğren. Türkçe NLP için `dbmdz/bert-base-turkish-cased` modelini dene. **Kaynak:** Hugging Face NLP Course (ucretsiz), "Natural Language Processing with Transformers" (O'Reilly).
+Metin sınıflandırma ile başla (müşteri şikayeti kategorilendirme). Önce TF-IDF + Logistic Regression baseline kur, sonra Hugging Face Transformers ile fine-tuned BERT/DistilBERT modeline geç. Tokenizer mantığını, attention mekanizmasını sezgisel düzeyde öğren. Türkçe NLP için `dbmdz/bert-base-turkish-cased` modelini dene. **Kaynak:** Hugging Face NLP Course (ücretsiz), "Natural Language Processing with Transformers" (O'Reilly).
 
 #### RecSys — Öneri Sistemleri
 
-İki aşamalı mimariyle başla: candidate generation (ANN/FAISS ile) + ranking (LightGBM veya neural ranker). Collaborative filtering (ALS) ile baseline kur, sonra content-based ve hybrid yaklaşımlara geç. Cold-start problemini çözmek için popularity fallback ve feature-based yaklaşımları uygula. Offline metrikleri (NDCG, MAP) ile online metrikleri (CTR, session suresi) ayirt et. **Kaynak:** "Recommendation Systems" (Aggarwal), Google RecSys kursları.
+İki aşamalı mimariyle başla: candidate generation (ANN/FAISS ile) + ranking (LightGBM veya neural ranker). Collaborative filtering (ALS) ile baseline kur, sonra content-based ve hybrid yaklaşımlara geç. Cold-start problemini çözmek için popularity fallback ve feature-based yaklaşımları uygula. Offline metrikleri (NDCG, MAP) ile online metrikleri (CTR, session süresi) ayırt et. **Kaynak:** "Recommendation Systems" (Aggarwal), Google RecSys kursları.
 
 #### CV — Bilgisayarlı Görme
 
-Transfer learning ile başla: pretrained ResNet/EfficientNet uzerine kendi veri setini fine-tune et. Data augmentation teknikleri (Albumentations kutuphanesi) kritik. Confusion matrix ile siniflar arasi hata analizini yap. Object detection (YOLO) ve segmentation (SAM) konularina goz at ama once siniflandirmayi saglamca otur. **Kaynak:** fast.ai "Practical Deep Learning for Coders" (ucretsiz), PyTorch tutorials.
+Transfer learning ile başla: pretrained ResNet/EfficientNet üzerine kendi veri setini fine-tune et. Data augmentation teknikleri (Albumentations kütüphanesi) kritik. Confusion matrix ile sınıflar arası hata analizini yap. Object detection (YOLO) ve segmentation (SAM) konularına göz at ama önce sınıflandırmayı sağlamca otur. **Kaynak:** fast.ai "Practical Deep Learning for Coders" (ücretsiz), PyTorch tutorials.
 
-#### LLM/RAG — Buyuk Dil Modelleri ve Retrieval-Augmented Generation
+#### LLM/RAG — Büyük Dil Modelleri ve Retrieval-Augmented Generation
 
-RAG pipeline kur: dokuman chunking → embedding (OpenAI veya sentence-transformers) → vector DB (ChromaDB/Qdrant) → LLM ile cevap uretimi. Chunk boyutu, overlap, retrieval stratejisi (hybrid search) deneylerini yap. Evaluation icin RAGAS framework kullan (faithfulness, relevance, context recall). Fine-tuning karari: ne zaman RAG yeterli, ne zaman LoRA/QLoRA gerekli? **Kaynak:** LangChain/LlamaIndex dokumanlarI, "Building LLM Apps" (Hugging Face).
+RAG pipeline kur: doküman chunking → embedding (OpenAI veya sentence-transformers) → vector DB (ChromaDB/Qdrant) → LLM ile cevap üretimi. Chunk boyutu, overlap, retrieval stratejisi (hybrid search) deneylerini yap. Evaluation için RAGAS framework kullan (faithfulness, relevance, context recall). Fine-tuning kararı: ne zaman RAG yeterli, ne zaman LoRA/QLoRA gerekli? **Kaynak:** LangChain/LlamaIndex dokümanları, "Building LLM Apps" (Hugging Face).
 
 #### Reinforcement Learning / Contextual Bandits
 
-Klasik RL yerine is problemlerine daha yakin olan contextual bandits ile basla. Epsilon-greedy, Thompson Sampling ve LinUCB algoritmalarini ogren. Kullanim alanlari: dinamik fiyatlama, reklam optimizasyonu, kisisellestirilmis oneri siralama. Vowpal Wabbit veya `coba` kutuphanesi ile pratik yap. Offline policy evaluation (OPE) ile gercek A/B test oncesi politika karsilastirmasi yap. **Kaynak:** "Bandit Algorithms for Website Optimization" (White), Sutton & Barto Bolum 2 (bandits).
+Klasik RL yerine iş problemlerine daha yakın olan contextual bandits ile başla. Epsilon-greedy, Thompson Sampling ve LinUCB algoritmalarını öğren. Kullanım alanları: dinamik fiyatlama, reklam optimizasyonu, kişiselleştirilmiş öneri sıralama. Vowpal Wabbit veya `coba` kütüphanesi ile pratik yap. Offline policy evaluation (OPE) ile gerçek A/B test öncesi politika karşılaştırması yap. **Kaynak:** "Bandit Algorithms for Website Optimization" (White), Sutton & Barto Bölüm 2 (bandits).
 
-#### AutoML (AutoGluon) — Hizli Prototipleme
+#### AutoML (AutoGluon) — Hızlı Prototipleme
 
-AutoGluon ile saatler icinde guclu baseline modeli kur. `TabularPredictor` ile train et, feature importance ve leaderboard raporlarini analiz et. AutoML ciktisini benchmark olarak kullan: elle kurdugun modelin AutoML'i gecip gecemedigini olc. Dikkat: AutoML "sihirli deguek" degil — problem framing, feature engineering ve data leakage kontrolu hala senin sorumlulugunda. **Kaynak:** AutoGluon documentation, "AutoML: Methods, Systems, Challenges" (Springer).
+AutoGluon ile saatler içinde güçlü baseline modeli kur. `TabularPredictor` ile train et, feature importance ve leaderboard raporlarını analiz et. AutoML çıktısını benchmark olarak kullan: elle kurduğun modelin AutoML'i geçip geçemediğini ölç. Dikkat: AutoML "sihirli değnek" değil — problem framing, feature engineering ve data leakage kontrolü hâlâ senin sorumluluğunda. **Kaynak:** AutoGluon documentation, "AutoML: Methods, Systems, Challenges" (Springer).
 
-**Tavsiye:** 2026 is piyasasinda NLP/LLM ve MLOps birlikte isteniyor. Contextual bandits ise kisisellestirilmis urun deneyimleri sunan sirketlerde (e-ticaret, fintech, medya) giderek daha cok araniyor.
+**Tavsiye:** 2026 iş piyasasında NLP/LLM ve MLOps birlikte isteniyor. Contextual bandits ise kişiselleştirilmiş ürün deneyimleri sunan şirketlerde (e-ticaret, fintech, medya) giderek daha çok aranıyor.
 
 **Checklist:**
-- [ ] Secilen uzmanlik alaninda en az 1 uctan uca proje tamamlandi
-- [ ] Baseline model kuruldu ve guclu model ile karsilastirildi
-- [ ] Model performansi is metrigine cevrildi (ornegin: "precision %85 → yanlis siniflandirma maliyeti %40 azaldi")
-- [ ] Proje README'sinde problem tanimi, yaklasim, sonuclar ve learned lessons var
-- [ ] Kod notebooks'tan src/'ye tasindi (reusable moduller)
-- [ ] En az 1 blog yazisi veya teknik sunum hazirlandi
+- [ ] Seçilen uzmanlık alanında en az 1 uçtan uca proje tamamlandı
+- [ ] Baseline model kuruldu ve güçlü model ile karşılaştırıldı
+- [ ] Model performansı iş metriğine çevrildi (örneğin: "precision %85 → yanlış sınıflandırma maliyeti %40 azaldı")
+- [ ] Proje README'sinde problem tanımı, yaklaşım, sonuçlar ve learned lessons var
+- [ ] Kod notebooks'tan src/'ye taşındı (reusable modüller)
+- [ ] En az 1 blog yazısı veya teknik sunum hazırlandı
 
 ---
 
-## Asama 6 — MLOps + Sistem Tasarimi (2–6 hafta)
+## Aşama 6 — MLOps + Sistem Tasarımı (2–6 hafta)
 
-> **Sure:** Haftada 15 saat calisarak 6 hafta | Tam zamanli: 2–3 hafta
+> **Süre:** Haftada 15 saat çalışarak 6 hafta | Tam zamanlı: 2–3 hafta
 
-> **Detay icin bkz.** `katman-E-mlops.md` ve `katman-F-sistem-tasarimi.md`
+> **Detay için bkz.** `katman-E-mlops.md` ve `katman-F-sistem-tasarimi.md`
 
-### Yapilacaklar
+### Yapılacaklar
 
-1. **Kod paketleme:** `notebooks/` → `src/` (uretilebilir kod)
+1. **Kod paketleme:** `notebooks/` → `src/` (üretilebilir kod)
 2. **Data validation:** Pandera veya Great Expectations ile veri kalitesi kontrolleri
 3. **FastAPI servis:** `/health` + `/predict` endpoint'leri
 4. **Docker:** Dockerfile yazma, image build
 5. **MLflow:** deney takibi, model registry
-6. **Izleme:** latency + data drift (Evidently)
-7. **Evidently drift raporu** olusturma
-8. **Feature store:** Feast ile offline/online feature tutarliligi
+6. **İzleme:** latency + data drift (Evidently)
+7. **Evidently drift raporu** oluşturma
+8. **Feature store:** Feast ile offline/online feature tutarlılığı
 9. **CI/CD:** GitHub Actions ile otomatik test
 
-### Data Validation Ornegi (Pandera)
+### Data Validation Örneği (Pandera)
 
 ```python
 import pandera as pa
 from pandera import Column, Check
 
-# Train/serving verisinin semasini tanimla
+# Train/serving verisinin şemasını tanımla
 schema = pa.DataFrameSchema({
     "age":       Column(int, Check.in_range(0, 120), nullable=False),
     "income":    Column(float, Check.greater_than(0), nullable=True),
@@ -382,17 +382,17 @@ schema = pa.DataFrameSchema({
     "churn":     Column(int, Check.isin([0, 1])),
 })
 
-# Veri her pipeline calistiginda validate et
-validated_df = schema.validate(df, lazy=True)  # lazy=True: tum hatalari topla
+# Veri her pipeline çalıştığında validate et
+validated_df = schema.validate(df, lazy=True)  # lazy=True: tüm hataları topla
 ```
 
-### Evidently Drift Raporu Ornegi
+### Evidently Drift Raporu Örneği
 
 ```python
 from evidently.report import Report
 from evidently.metric_preset import DataDriftPreset, TargetDriftPreset
 
-# Referans (train) vs guncel (production) veriyi karsilastir
+# Referans (train) vs güncel (production) veriyi karşılaştır
 drift_report = Report(metrics=[
     DataDriftPreset(),
     TargetDriftPreset(),
@@ -400,13 +400,13 @@ drift_report = Report(metrics=[
 
 drift_report.run(
     reference_data=df_train,   # train seti
-    current_data=df_prod,      # production'dan gelen son 7 gun
+    current_data=df_prod,      # production'dan gelen son 7 gün
 )
 
 # HTML rapor kaydet — CI/CD'de artifact olarak sakla
 drift_report.save_html("reports/drift_report.html")
 
-# Programatik erisim — alert sistemi icin
+# Programatik erişim — alert sistemi için
 result = drift_report.as_dict()
 drift_detected = result["metrics"][0]["result"]["dataset_drift"]
 if drift_detected:
@@ -416,7 +416,7 @@ if drift_detected:
 ### Feature Store Mini Setup (Feast)
 
 ```python
-# feature_store.yaml (proje kokunde)
+# feature_store.yaml (proje kökünde)
 """
 project: churn_features
 registry: data/registry.db
@@ -426,7 +426,7 @@ online_store:
   path: data/online_store.db
 """
 
-# features.py — feature tanimlari
+# features.py — feature tanımları
 from feast import Entity, FeatureView, Field, FileSource
 from feast.types import Float32, Int64
 from datetime import timedelta
@@ -448,8 +448,8 @@ customer_features = FeatureView(
     ),
 )
 
-# Kullanim: feast apply → feast materialize → online serving
-# Bu sayede train ve serving'de ayni feature logic kullanilir
+# Kullanım: feast apply → feast materialize → online serving
+# Bu sayede train ve serving'de aynı feature logic kullanılır
 ```
 
 ### Teslimat: Proje-6 MLOps Mini Platform
@@ -475,70 +475,70 @@ proje-6-mlops/
 
 **Checklist:**
 - [ ] Model MLflow registry'de
-- [ ] FastAPI container ayaga kalkiyor
+- [ ] FastAPI container ayağa kalkıyor
 - [ ] Data validation (Pandera/Great Expectations) pipeline'a entegre
-- [ ] Evidently drift raporu otomatik uretiliyor
-- [ ] Feature store (Feast) kuruldu, offline/online tutarlilik saglandi
-- [ ] Drift tespit edildiginde alert mekanizmasi var
-- [ ] GitHub Actions testi geciyor
-- [ ] Model card yazili
+- [ ] Evidently drift raporu otomatik üretiliyor
+- [ ] Feature store (Feast) kuruldu, offline/online tutarlılık sağlandı
+- [ ] Drift tespit edildiğinde alert mekanizması var
+- [ ] GitHub Actions testi geçiyor
+- [ ] Model card yazılı
 - [ ] README'de mimari diyagram (Mermaid) var
 
 ---
 
-## Asama 7 — Senior Seviyeye Gecis (Surekli)
+## Aşama 7 — Senior Seviyeye Geçiş (Sürekli)
 
-> **Sure:** Bu asama sureklidir. Ilk gecis icin haftada 15 saat calisarak 4–6 hafta yogun pratik. Sonrasi kariyer boyu devam.
+> **Süre:** Bu aşama süreklidir. İlk geçiş için haftada 15 saat çalışarak 4–6 hafta yoğun pratik. Sonrası kariyer boyu devam.
 
-> **Detay icin bkz.** `katman-G-senior-davranislar.md` ve `katman-F-sistem-tasarimi.md`
+> **Detay için bkz.** `katman-G-senior-davranislar.md` ve `katman-F-sistem-tasarimi.md`
 
-Bu asama bir defalik degil, surekli bir pratik:
+Bu aşama bir defalık değil, sürekli bir pratik:
 
-1. **Dokumantasyon:** Her projede model card + karar dokumani (ADR)
-2. **Stakeholder dili:** AUC degil, "kac musteri daha kaldi, etkisi ne?"
-3. **Etki olcumu:** Is metrikleriyle baglanti kur (OKR cercevesi)
-4. **Mentorluk aliskanligi:** Code review checklist ile kendi kodunu gozden gecir
-5. **Technical debt:** Her sprint'in %20'si eski borcu ode
-6. **Fairness ve model ethics:** Her uretim modeli icin adalet kontrolu yap
+1. **Dokümantasyon:** Her projede model card + karar dokümanı (ADR)
+2. **Stakeholder dili:** AUC değil, "kaç müşteri daha kaldı, etkisi ne?"
+3. **Etki ölçümü:** İş metrikleriyle bağlantı kur (OKR çerçevesi)
+4. **Mentorluk alışkanlığı:** Code review checklist ile kendi kodunu gözden geçir
+5. **Technical debt:** Her sprint'in %20'si eski borcu öde
+6. **Fairness ve model ethics:** Her üretim modeli için adalet kontrolü yap
 
-### Gercekci Vaka Calismasi — STAR Formati
+### Gerçekçi Vaka Çalışması — STAR Formatı
 
-Mulakatlarda ve is icerisinde etki anlatirken STAR formatini kullan:
+Mülakatlarda ve iş içerisinde etki anlatırken STAR formatını kullan:
 
-> **Situation:** E-ticaret sirketinde musteri kayip orani (churn) %18'e cikti, yonetim musterileri elde tutmak icin hedefli kampanya yapmak istiyordu ama kimlere odaklanacagini bilmiyordu.
+> **Situation:** E-ticaret şirketinde müşteri kayıp oranı (churn) %18'e çıktı, yönetim müşterileri elde tutmak için hedefli kampanya yapmak istiyordu ama kimlere odaklanacağını bilmiyordu.
 >
-> **Task:** Churn olasIligi yuksek musterileri 30 gun onceden tespit eden bir model kur ve kampanya butcesini optimize et.
+> **Task:** Churn olasılığı yüksek müşterileri 30 gün önceden tespit eden bir model kur ve kampanya bütçesini optimize et.
 >
-> **Action:** 12 aylik islem verisinden 45 feature urettim (RFM, session suresi, destek talebi sayisi). LightGBM ile model kurdum, SHAP ile en etkili faktorleri belirledim. Threshold'u maliyet matrisine gore optimize ettim: false negative (kacirilan churn) maliyeti false positive'den 5x fazlaydi. Modeli FastAPI ile deploy edip, haftalik batch prediction pipeline'i kurdum.
+> **Action:** 12 aylık işlem verisinden 45 feature ürettim (RFM, session süresi, destek talebi sayısı). LightGBM ile model kurdum, SHAP ile en etkili faktörleri belirledim. Threshold'u maliyet matrisine göre optimize ettim: false negative (kaçırılan churn) maliyeti false positive'den 5x fazlaydı. Modeli FastAPI ile deploy edip, haftalık batch prediction pipeline'ı kurdum.
 >
-> **Result:** Hedefli kampanya ile churn orani %18 → %12'ye dustu (6 puan iyilesme). Kampanya butcesi %35 azaldi (sadece yuksek riskli musterilere odaklanildi). Yillik tahmini tasarruf: ~2.4M TL.
+> **Result:** Hedefli kampanya ile churn oranı %18 → %12'ye düştü (6 puan iyileşme). Kampanya bütçesi %35 azaldı (sadece yüksek riskli müşterilere odaklanıldı). Yıllık tahmini tasarruf: ~2.4M TL.
 
-### OKR Baglantisi — Somut Ornek
+### OKR Bağlantısı — Somut Örnek
 
-Modelini her zaman sirket OKR'larina bagla:
+Modelini her zaman şirket OKR'larına bağla:
 
-| OKR | Model Katkisi | Metrik |
+| OKR | Model Katkısı | Metrik |
 |-----|---------------|--------|
-| **O:** Musteri elde tutma oranini artir | Churn prediction modeli | Churn oranI %18 → %12 |
-| **KR1:** Kayip riski yuksek musterilerin %80'ini tespit et | Recall@top20% | %82 (hedef: %80) |
+| **O:** Müşteri elde tutma oranını artır | Churn prediction modeli | Churn oranı %18 → %12 |
+| **KR1:** Kayıp riski yüksek müşterilerin %80'ini tespit et | Recall@top20% | %82 (hedef: %80) |
 | **KR2:** Kampanya maliyetini %30 azalt | Precision-based targeting | %35 azalma (hedef: %30) |
 | **KR3:** Q3 sonuna kadar production'a al | Deployment tarihi | 2 hafta erken teslim |
 
-**Boylece:** "AUC 0.87 olan bir model kurdum" degil, "Musteri kayip oranini 6 puan dusurerek yillik 2.4M TL tasarruf saglayan bir sistem kurdum" dersin.
+**Böylece:** "AUC 0.87 olan bir model kurdum" değil, "Müşteri kayıp oranını 6 puan düşürerek yıllık 2.4M TL tasarruf sağlayan bir sistem kurdum" dersin.
 
 ### Fairness ve Model Ethics Kontrol Listesi
 
-Her production modeli icin asagidaki kontrolleri yap:
+Her production modeli için aşağıdaki kontrolleri yap:
 
-| Kontrol | Aciklama | Arac |
+| Kontrol | Açıklama | Araç |
 |---------|----------|------|
-| **Demografik parite** | Model tahminleri korumali gruplara (cinsiyet, yas, etnik koken) gore anlamli farklilik gosteriyor mu? | `fairlearn`, `aequitas` |
-| **Esit firsat (equalized odds)** | True positive rate gruplar arasi esit mi? | `fairlearn.metrics` |
-| **Calibration farki** | Model her grup icin esit derecede kalibre mi? | Calibration curve per group |
-| **Proxy degisken kontrolu** | Posta kodu, isim gibi degiskenler korunmali ozellikler icin proxy gorevI goruyor mu? | SHAP interaction analizi |
-| **Veri temsili** | Egitim verisinde azinlik gruplari yeterince temsil ediliyor mu? | `df.groupby("group").size()` |
-| **Aciklanabilirlik** | Red karari alan bir kullanici "neden?" diye sorsa, anlasilir bir aciklama verebiliyor musun? | SHAP local explanation |
-| **Dokumantasyon** | Model card'da fairness metrikleri ve bilinen kisitlamalar yazili mi? | Model card sablonu |
+| **Demografik parite** | Model tahminleri korumalı gruplara (cinsiyet, yaş, etnik köken) göre anlamlı farklılık gösteriyor mu? | `fairlearn`, `aequitas` |
+| **Eşit fırsat (equalized odds)** | True positive rate gruplar arası eşit mi? | `fairlearn.metrics` |
+| **Calibration farkı** | Model her grup için eşit derecede kalibre mi? | Calibration curve per group |
+| **Proxy değişken kontrolü** | Posta kodu, isim gibi değişkenler korumalı özellikler için proxy görevi görüyor mu? | SHAP interaction analizi |
+| **Veri temsili** | Eğitim verisinde azınlık grupları yeterince temsil ediliyor mu? | `df.groupby("group").size()` |
+| **Açıklanabilirlik** | Red kararı alan bir kullanıcı "neden?" diye sorsa, anlaşılır bir açıklama verebiliyor musun? | SHAP local explanation |
+| **Dokümantasyon** | Model card'da fairness metrikleri ve bilinen kısıtlamalar yazılı mı? | Model card şablonu |
 
 ```python
 # Fairlearn ile hizli fairness kontrolu
@@ -552,61 +552,61 @@ metric_frame = MetricFrame(
     sensitive_features=df_test["gender"],
 )
 
-print(metric_frame.by_group)        # Grup bazli metrikler
-print(metric_frame.difference())    # Gruplar arasi max fark
-# Fark > 0.05 ise alarma gec ve mudahale stratejisi belirle
+print(metric_frame.by_group)        # Grup bazlı metrikler
+print(metric_frame.difference())    # Gruplar arası max fark
+# Fark > 0.05 ise alarma geç ve müdahale stratejisi belirle
 ```
 
-### Teslimat: Proje-7 Sistem Tasarim Dokumani
+### Teslimat: Proje-7 Sistem Tasarım Dokümanı
 
 - Real-time fraud scoring mimarisi
 - Mimari diyagram (Mermaid veya draw.io)
-- Latency butcesi tablosu
+- Latency bütçesi tablosu
 - Retraining stratejisi
 - Maliyet tahmini
-- Fairness raporu (en az 2 metrik, grup bazli sonuclar)
+- Fairness raporu (en az 2 metrik, grup bazlı sonuçlar)
 
 **Checklist:**
-- [ ] En az 1 proje icin STAR formatinda etki hikayesi yazildi
-- [ ] OKR baglantisi kuruldu: model metrigi → is metrigi → parasal etki
-- [ ] Sistem tasarim dokumani tamamlandi (mimari diyagram + latency butcesi)
-- [ ] Fairness kontrol listesi en az 1 model icin uygulandI
-- [ ] Model card'da fairness metrikleri ve bilinen kisitlamalar yer aliyor
-- [ ] ADR (Architecture Decision Record) yazildi: hangi model, neden, alternatifler
-- [ ] En az 1 junior'a code review veya mentorluk yapildi (veya simulasyonu)
-- [ ] Stakeholder sunumu hazirlandi (teknik olmayan kitleye yonelik)
+- [ ] En az 1 proje için STAR formatında etki hikayesi yazıldı
+- [ ] OKR bağlantısı kuruldu: model metriği → iş metriği → parasal etki
+- [ ] Sistem tasarım dokümanı tamamlandı (mimari diyagram + latency bütçesi)
+- [ ] Fairness kontrol listesi en az 1 model için uygulandı
+- [ ] Model card'da fairness metrikleri ve bilinen kısıtlamalar yer alıyor
+- [ ] ADR (Architecture Decision Record) yazıldı: hangi model, neden, alternatifler
+- [ ] En az 1 junior'a code review veya mentorluk yapıldı (veya simülasyonu)
+- [ ] Stakeholder sunumu hazırlandı (teknik olmayan kitleye yönelik)
 
 ---
 
-## En Kisa "Ise Girilebilir" Rota
+## En Kısa "İşe Girilebilir" Rota
 
-Zaman cok kisitliysa (1–2 aylik sprint):
+Zaman çok kısıtlıysa (1–2 aylık sprint):
 
 ```
-Asama 0 → Asama 1 → Asama 3
-(Proje-0 + Proje-1 + SQL mulakat seti + 2–3 ML case)
+Aşama 0 → Aşama 1 → Aşama 3
+(Proje-0 + Proje-1 + SQL mülakat seti + 2–3 ML case)
 ```
 
-**Somut zaman plani:** Haftada 15 saat calisarak ~6 hafta. Tam zamanli (haftada 40 saat) calisarak ~3 hafta.
+**Somut zaman planı:** Haftada 15 saat çalışarak ~6 hafta. Tam zamanlı (haftada 40 saat) çalışarak ~3 hafta.
 
-Bu rota junior-mid pozisyonlar icin yeterli. Senior icin Asama 4–7 gerekli (ek 3–5 ay).
+Bu rota junior-mid pozisyonlar için yeterli. Senior için Aşama 4–7 gerekli (ek 3–5 ay).
 
 ---
 
-## Haftalik Calisma Ritmi
+## Haftalık Çalışma Ritmi
 
-### Gunluk plan (2–3 saat)
+### Günlük plan (2–3 saat)
 - **30 dk** — Teori (okuma, video)
 - **90 dk** — Pratik (kod, proje)
-- **30 dk** — Not + ozet + "yarin ne yapacagim" listesi
+- **30 dk** — Not + özet + "yarın ne yapacağım" listesi
 
-### Haftalik plan
-| Gun | Aktivite |
+### Haftalık plan
+| Gün | Aktivite |
 |-----|---------|
-| Pazartesi–Carsamba | Yeni konu ogren |
-| Persembe | Mini proje veya odev teslimi |
-| Cuma | Haftalik review + rapor (bulgular + grafik) |
-| Hafta sonu | Kaggle / okuma / izleme (zorunlu degil) |
+| Pazartesi–Çarşamba | Yeni konu öğren |
+| Perşembe | Mini proje veya ödev teslimi |
+| Cuma | Haftalık review + rapor (bulgular + grafik) |
+| Hafta sonu | Kaggle / okuma / izleme (zorunlu değil) |
 
 ### "Takildim" protokolu
 1. 15 dk kendi basina dene
