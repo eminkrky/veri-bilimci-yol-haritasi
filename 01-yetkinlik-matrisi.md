@@ -1,5 +1,19 @@
 # 01 — Senior Veri Bilimci Nedir? Yetkinlik Matrisi
 
+<div class="learning-objectives">
+<strong>Bu Bölümde Ne Öğreneceksiniz</strong>
+<ul>
+<li>Junior, Mid ve Senior veri bilimci arasındaki farkları anlayacaksınız</li>
+<li>Teknik ve davranışsal yetkinlikleri haritalayacaksınız</li>
+<li>Kendi seviyenizi belirleyip gelişim planı çıkaracaksınız</li>
+</ul>
+</div>
+
+<div class="industry-quote">
+"Bir veri bilimcinin asıl görevi model kurmak değil, karar vericilerin daha iyi kararlar almasına yardımcı olmaktır."
+<span class="quote-author">— Cassie Kozyrkov, Google Chief Decision Scientist</span>
+</div>
+
 > **Senior** sadece "daha iyi model kuran" değildir. Belirsizliği yönetir, iş etkisini ölçer, kararlar aldırır ve ekibi büyütür.
 
 ---
@@ -299,6 +313,11 @@ Dokümantasyon:
 ```
 
 ---
+
+<div class="whats-next">
+<strong>Sırada Ne Var?</strong>
+<p>Artık seviyenizi biliyorsunuz. Bölüm 1'de makine öğrenmesinin temelini oluşturan matematik yapı taşlarıyla başlıyoruz.</p>
+</div>
 
 <div class="nav-footer">
   <span><a href="#file_00_uygulama_sirasi">← Önceki: Uygulama Sırası</a></span>

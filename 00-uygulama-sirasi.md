@@ -1,5 +1,19 @@
 # 00 — Uygulama Sırası (Sırayla Yapılacaklar)
 
+<div class="learning-objectives">
+<strong>Bu Bölümde Ne Öğreneceksiniz</strong>
+<ul>
+<li>8 aşamalı öğrenme planının tamamını kavrayacaksınız</li>
+<li>Her aşamada ne teslim edeceğinizi bileceksiniz</li>
+<li>Kendi hızınıza uygun bir zaman planı oluşturacaksınız</li>
+</ul>
+</div>
+
+<div class="industry-quote">
+"Yapay zeka yeni elektriktir. Nasıl elektrik 100 yıl önce neredeyse her şeyi dönüştürdüyse, bugün AI da aynısını yapıyor."
+<span class="quote-author">— Andrew Ng, DeepLearning.AI Kurucusu</span>
+</div>
+
 > Bu dosya, rehberdeki tüm içerikleri **en verimli öğrenme sırasında** kullanman için tasarlandı.
 >
 > **Kural:** Her aşamada mutlaka bir **teslimat (deliverable)** üret. Teslimat yoksa öğrenme kalıcı olmaz.
@@ -649,6 +663,11 @@ Bu yol haritasi bu gercekleri yansitacak sekilde tasarlandi.
 *Kaynaklar: [AI and Data Scientist Roadmap](https://roadmap.sh/ai-data-scientist), [Data Science Trends 2025–2030](https://emerline.com/blog/top-data-science-trends), [Data Scientist Career Path](https://www.scaler.com/blog/data-scientist-career-path/), [Data Science Career Roadmap](https://www.coursera.org/resources/job-leveling-matrix-for-data-science-career-pathways)*
 
 ---
+
+<div class="whats-next">
+<strong>Sırada Ne Var?</strong>
+<p>Yetkinlik Matrisi ile kendinizi değerlendirin ve hangi seviyede olduğunuzu tespit edin.</p>
+</div>
 
 <div class="nav-footer">
   <span><a href="#file_README">← Önceki: Giriş</a></span>

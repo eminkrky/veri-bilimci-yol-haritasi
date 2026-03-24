@@ -1,0 +1,1224 @@
+ ▐▛███▜▌   Claude Code v2.1.81
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/Masaüstü/veribilimikitabı
+
+✻ Conversation compacted (ctrl+o for history)
+
+  ⎿  Referenced file 00-uygulama-sirasi.md
+  ⎿  Read requirements.txt (4 lines)
+  ⎿  Referenced file build_pdf.py
+  ⎿  Referenced file 01-yetkinlik-matrisi.md
+  ⎿  Referenced file kaynaklar.md
+  ⎿  Plan file referenced (~/.claude/plans/tingly-wibbling-seahorse.md)
+  ⎿  Skills restored (simplify)
+
+  Read 1 file (ctrl+o to expand)
+
+● I can see the corruption. Let me fix all the broken Turkish characters,
+  starting with the smaller fixes and then the major sections.
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 1 line, removed 1 line
+      316  
+      317  #### NLP — Doğal Dil İşleme
+      318  
+      319 -Metin sınıflandırma ile başla (müşteri şikayeti kategorilendir
+          -me). Önce TF-IDF + Logistic Regression baseline kur, sonra Hug
+          -ging Face Transformers ile fine-tuned BERT/DistilBERT modeline
+          - geç. Tokenizer mantığını, attention mekanizmasını sezgisel dü
+          -zeyde öğren. Türkçe NLP için `dbmdz/bert-base-turkish-cased` m
+          -odelini dene. **Kaynak:** Hugging Face NLP Course (ucretsiz), 
+          -"Natural Language Processing with Transformers" (O'Reilly).   
+      319 +Metin sınıflandırma ile başla (müşteri şikayeti kategorilendir
+          +me). Önce TF-IDF + Logistic Regression baseline kur, sonra Hug
+          +ging Face Transformers ile fine-tuned BERT/DistilBERT modeline
+          + geç. Tokenizer mantığını, attention mekanizmasını sezgisel dü
+          +zeyde öğren. Türkçe NLP için `dbmdz/bert-base-turkish-cased` m
+          +odelini dene. **Kaynak:** Hugging Face NLP Course (ücretsiz), 
+          +"Natural Language Processing with Transformers" (O'Reilly).   
+      320  
+      321  #### RecSys — Öneri Sistemleri
+      322  
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 1 line, removed 1 line
+      320  
+      321  #### RecSys — Öneri Sistemleri
+      322  
+      323 -İki aşamalı mimariyle başla: candidate generation (ANN/FAISS i
+          -le) + ranking (LightGBM veya neural ranker). Collaborative fil
+          -tering (ALS) ile baseline kur, sonra content-based ve hybrid y
+          -aklaşımlara geç. Cold-start problemini çözmek için popularity 
+          -fallback ve feature-based yaklaşımları uygula. Offline metrikl
+          -eri (NDCG, MAP) ile online metrikleri (CTR, session suresi) ay
+          -irt et. **Kaynak:** "Recommendation Systems" (Aggarwal), Googl
+          -e RecSys kursları.                                            
+      323 +İki aşamalı mimariyle başla: candidate generation (ANN/FAISS i
+          +le) + ranking (LightGBM veya neural ranker). Collaborative fil
+          +tering (ALS) ile baseline kur, sonra content-based ve hybrid y
+          +aklaşımlara geç. Cold-start problemini çözmek için popularity 
+          +fallback ve feature-based yaklaşımları uygula. Offline metrikl
+          +eri (NDCG, MAP) ile online metrikleri (CTR, session süresi) ay
+          +ırt et. **Kaynak:** "Recommendation Systems" (Aggarwal), Googl
+          +e RecSys kursları.                                            
+      324  
+      325  #### CV — Bilgisayarlı Görme
+      326  
+
+● Now let me fix the large Aşama 6 section:
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 9 lines, removed 9 lines
+      350  
+      351  ---
+      352  
+      353 -## Asama 6 — MLOps + Sistem Tasarimi (2–6 hafta)              
+      353 +## Aşama 6 — MLOps + Sistem Tasarımı (2–6 hafta)              
+      354  
+      355 -> **Sure:** Haftada 15 saat calisarak 6 hafta | Tam zamanli: 2
+          -–3 hafta                                                      
+      355 +> **Süre:** Haftada 15 saat çalışarak 6 hafta | Tam zamanlı: 2
+          +–3 hafta                                                      
+      356  
+      357 -> **Detay icin bkz.** `katman-E-mlops.md` ve `katman-F-sistem-
+          -tasarimi.md`                                                  
+      357 +> **Detay için bkz.** `katman-E-mlops.md` ve `katman-F-sistem-
+          +tasarimi.md`                                                  
+      358  
+      359 -### Yapilacaklar                                              
+      359 +### Yapılacaklar                                              
+      360  
+      361 -1. **Kod paketleme:** `notebooks/` → `src/` (uretilebilir kod)
+      361 +1. **Kod paketleme:** `notebooks/` → `src/` (üretilebilir kod)
+      362  2. **Data validation:** Pandera veya Great Expectations ile ve
+           ri kalitesi kontrolleri
+      363  3. **FastAPI servis:** `/health` + `/predict` endpoint'leri
+      364  4. **Docker:** Dockerfile yazma, image build
+      365  5. **MLflow:** deney takibi, model registry
+      366 -6. **Izleme:** latency + data drift (Evidently)               
+      367 -7. **Evidently drift raporu** olusturma                       
+      368 -8. **Feature store:** Feast ile offline/online feature tutarli
+          -ligi                                                          
+      366 +6. **İzleme:** latency + data drift (Evidently)               
+      367 +7. **Evidently drift raporu** oluşturma                       
+      368 +8. **Feature store:** Feast ile offline/online feature tutarlı
+          +lığı                                                          
+      369  9. **CI/CD:** GitHub Actions ile otomatik test
+      370  
+      371 -### Data Validation Ornegi (Pandera)                          
+      371 +### Data Validation Örneği (Pandera)                          
+      372  
+      373  ```python
+      374  import pandera as pa
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 3 lines, removed 3 lines
+      374  import pandera as pa
+      375  from pandera import Column, Check
+      376  
+      377 -# Train/serving verisinin semasini tanimla                    
+      377 +# Train/serving verisinin şemasını tanımla                    
+      378  schema = pa.DataFrameSchema({
+      379      "age":       Column(int, Check.in_range(0, 120), nullable=
+           False),
+      380      "income":    Column(float, Check.greater_than(0), nullable
+           =True),
+     ...
+      382      "churn":     Column(int, Check.isin([0, 1])),
+      383  })
+      384  
+      385 -# Veri her pipeline calistiginda validate et                  
+      386 -validated_df = schema.validate(df, lazy=True)  # lazy=True: tu
+          -m hatalari topla                                              
+      385 +# Veri her pipeline çalıştığında validate et                  
+      386 +validated_df = schema.validate(df, lazy=True)  # lazy=True: tü
+          +m hataları topla                                              
+      387  ```
+      388  
+      389  ### Evidently Drift Raporu Ornegi
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 1 line, removed 1 line
+      386  validated_df = schema.validate(df, lazy=True)  # lazy=True: tü
+           m hataları topla
+      387  ```
+      388  
+      389 -### Evidently Drift Raporu Ornegi                             
+      389 +### Evidently Drift Raporu Örneği                             
+      390  
+      391  ```python
+      392  from evidently.report import Report
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 3 lines, removed 3 lines
+      392  from evidently.report import Report
+      393  from evidently.metric_preset import DataDriftPreset, TargetDri
+           ftPreset
+      394  
+      395 -# Referans (train) vs guncel (production) veriyi karsilastir  
+      395 +# Referans (train) vs güncel (production) veriyi karşılaştır  
+      396  drift_report = Report(metrics=[
+      397      DataDriftPreset(),
+      398      TargetDriftPreset(),
+     ...
+      400  
+      401  drift_report.run(
+      402      reference_data=df_train,   # train seti
+      403 -    current_data=df_prod,      # production'dan gelen son 7 gu
+          -n                                                             
+      403 +    current_data=df_prod,      # production'dan gelen son 7 gü
+          +n                                                             
+      404  )
+      405  
+      406  # HTML rapor kaydet — CI/CD'de artifact olarak sakla
+      407  drift_report.save_html("reports/drift_report.html")
+      408  
+      409 -# Programatik erisim — alert sistemi icin                     
+      409 +# Programatik erişim — alert sistemi için                     
+      410  result = drift_report.as_dict()
+      411  drift_detected = result["metrics"][0]["result"]["dataset_drift
+           "]
+      412  if drift_detected:
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 4 lines, removed 4 lines
+      416  ### Feature Store Mini Setup (Feast)
+      417  
+      418  ```python
+      419 -# feature_store.yaml (proje kokunde)                          
+      419 +# feature_store.yaml (proje kökünde)                          
+      420  """
+      421  project: churn_features
+      422  registry: data/registry.db
+     ...
+      426    path: data/online_store.db
+      427  """
+      428  
+      429 -# features.py — feature tanimlari                             
+      429 +# features.py — feature tanımları                             
+      430  from feast import Entity, FeatureView, Field, FileSource
+      431  from feast.types import Float32, Int64
+      432  from datetime import timedelta
+     ...
+      448      ),
+      449  )
+      450  
+      451 -# Kullanim: feast apply → feast materialize → online serving  
+      452 -# Bu sayede train ve serving'de ayni feature logic kullanilir 
+      451 +# Kullanım: feast apply → feast materialize → online serving  
+      452 +# Bu sayede train ve serving'de aynı feature logic kullanılır 
+      453  ```
+      454  
+      455  ### Teslimat: Proje-6 MLOps Mini Platform
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 6 lines, removed 6 lines
+      475  
+      476  **Checklist:**
+      477  - [ ] Model MLflow registry'de
+      478 -- [ ] FastAPI container ayaga kalkiyor                        
+      478 +- [ ] FastAPI container ayağa kalkıyor                        
+      479  - [ ] Data validation (Pandera/Great Expectations) pipeline'a 
+           entegre
+      480 -- [ ] Evidently drift raporu otomatik uretiliyor              
+      481 -- [ ] Feature store (Feast) kuruldu, offline/online tutarlilik
+          - saglandi                                                     
+      482 -- [ ] Drift tespit edildiginde alert mekanizmasi var          
+      483 -- [ ] GitHub Actions testi geciyor                            
+      484 -- [ ] Model card yazili                                       
+      480 +- [ ] Evidently drift raporu otomatik üretiliyor              
+      481 +- [ ] Feature store (Feast) kuruldu, offline/online tutarlılık
+          + sağlandı                                                     
+      482 +- [ ] Drift tespit edildiğinde alert mekanizması var          
+      483 +- [ ] GitHub Actions testi geçiyor                            
+      484 +- [ ] Model card yazılı                                       
+      485  - [ ] README'de mimari diyagram (Mermaid) var
+      486  
+      487  ---
+
+● Now fix the Aşama 7 section:
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 22 lines, removed 22 lines
+      486  
+      487  ---
+      488  
+      489 -## Asama 7 — Senior Seviyeye Gecis (Surekli)                  
+      489 +## Aşama 7 — Senior Seviyeye Geçiş (Sürekli)                  
+      490  
+      491 -> **Sure:** Bu asama sureklidir. Ilk gecis icin haftada 15 saa
+          -t calisarak 4–6 hafta yogun pratik. Sonrasi kariyer boyu devam
+          -.                                                             
+      491 +> **Süre:** Bu aşama süreklidir. İlk geçiş için haftada 15 saa
+          +t çalışarak 4–6 hafta yoğun pratik. Sonrası kariyer boyu devam
+          +.                                                             
+      492  
+      493 -> **Detay icin bkz.** `katman-G-senior-davranislar.md` ve `kat
+          -man-F-sistem-tasarimi.md`                                     
+      493 +> **Detay için bkz.** `katman-G-senior-davranislar.md` ve `kat
+          +man-F-sistem-tasarimi.md`                                     
+      494  
+      495 -Bu asama bir defalik degil, surekli bir pratik:               
+      495 +Bu aşama bir defalık değil, sürekli bir pratik:               
+      496  
+      497 -1. **Dokumantasyon:** Her projede model card + karar dokumani 
+          -(ADR)                                                         
+      498 -2. **Stakeholder dili:** AUC degil, "kac musteri daha kaldi, e
+          -tkisi ne?"                                                    
+      499 -3. **Etki olcumu:** Is metrikleriyle baglanti kur (OKR cerceve
+          -si)                                                           
+      500 -4. **Mentorluk aliskanligi:** Code review checklist ile kendi 
+          -kodunu gozden gecir                                           
+      501 -5. **Technical debt:** Her sprint'in %20'si eski borcu ode    
+      502 -6. **Fairness ve model ethics:** Her uretim modeli icin adalet
+          - kontrolu yap                                                 
+      497 +1. **Dokümantasyon:** Her projede model card + karar dokümanı 
+          +(ADR)                                                         
+      498 +2. **Stakeholder dili:** AUC değil, "kaç müşteri daha kaldı, e
+          +tkisi ne?"                                                    
+      499 +3. **Etki ölçümü:** İş metrikleriyle bağlantı kur (OKR çerçeve
+          +si)                                                           
+      500 +4. **Mentorluk alışkanlığı:** Code review checklist ile kendi 
+          +kodunu gözden geçir                                           
+      501 +5. **Technical debt:** Her sprint'in %20'si eski borcu öde    
+      502 +6. **Fairness ve model ethics:** Her üretim modeli için adalet
+          + kontrolü yap                                                 
+      503  
+      504 -### Gercekci Vaka Calismasi — STAR Formati                    
+      504 +### Gerçekçi Vaka Çalışması — STAR Formatı                    
+      505  
+      506 -Mulakatlarda ve is icerisinde etki anlatirken STAR formatini k
+          -ullan:                                                        
+      506 +Mülakatlarda ve iş içerisinde etki anlatırken STAR formatını k
+          +ullan:                                                        
+      507  
+      508 -> **Situation:** E-ticaret sirketinde musteri kayip orani (chu
+          -rn) %18'e cikti, yonetim musterileri elde tutmak icin hedefli 
+          -kampanya yapmak istiyordu ama kimlere odaklanacagini bilmiyord
+          -u.                                                            
+      508 +> **Situation:** E-ticaret şirketinde müşteri kayıp oranı (chu
+          +rn) %18'e çıktı, yönetim müşterileri elde tutmak için hedefli 
+          +kampanya yapmak istiyordu ama kimlere odaklanacağını bilmiyord
+          +u.                                                            
+      509  >
+      510 -> **Task:** Churn olasIligi yuksek musterileri 30 gun onceden 
+          -tespit eden bir model kur ve kampanya butcesini optimize et.  
+      510 +> **Task:** Churn olasılığı yüksek müşterileri 30 gün önceden 
+          +tespit eden bir model kur ve kampanya bütçesini optimize et.  
+      511  >
+      512 -> **Action:** 12 aylik islem verisinden 45 feature urettim (RF
+          -M, session suresi, destek talebi sayisi). LightGBM ile model k
+          -urdum, SHAP ile en etkili faktorleri belirledim. Threshold'u m
+          -aliyet matrisine gore optimize ettim: false negative (kacirila
+          -n churn) maliyeti false positive'den 5x fazlaydi. Modeli FastA
+          -PI ile deploy edip, haftalik batch prediction pipeline'i kurdu
+          -m.                                                            
+      512 +> **Action:** 12 aylık işlem verisinden 45 feature ürettim (RF
+          +M, session süresi, destek talebi sayısı). LightGBM ile model k
+          +urdum, SHAP ile en etkili faktörleri belirledim. Threshold'u m
+          +aliyet matrisine göre optimize ettim: false negative (kaçırıla
+          +n churn) maliyeti false positive'den 5x fazlaydı. Modeli FastA
+          +PI ile deploy edip, haftalık batch prediction pipeline'ı kurdu
+          +m.                                                            
+      513  >
+      514 -> **Result:** Hedefli kampanya ile churn orani %18 → %12'ye du
+          -stu (6 puan iyilesme). Kampanya butcesi %35 azaldi (sadece yuk
+          -sek riskli musterilere odaklanildi). Yillik tahmini tasarruf: 
+          -~2.4M TL.                                                     
+      514 +> **Result:** Hedefli kampanya ile churn oranı %18 → %12'ye dü
+          +ştü (6 puan iyileşme). Kampanya bütçesi %35 azaldı (sadece yük
+          +sek riskli müşterilere odaklanıldı). Yıllık tahmini tasarruf: 
+          +~2.4M TL.                                                     
+      515  
+      516 -### OKR Baglantisi — Somut Ornek                              
+      516 +### OKR Bağlantısı — Somut Örnek                              
+      517  
+      518 -Modelini her zaman sirket OKR'larina bagla:                   
+      518 +Modelini her zaman şirket OKR'larına bağla:                   
+      519  
+      520 -| OKR | Model Katkisi | Metrik |                              
+      520 +| OKR | Model Katkısı | Metrik |                              
+      521  |-----|---------------|--------|
+      522 -| **O:** Musteri elde tutma oranini artir | Churn prediction m
+          -odeli | Churn oranI %18 → %12 |                               
+      523 -| **KR1:** Kayip riski yuksek musterilerin %80'ini tespit et |
+          - Recall@top20% | %82 (hedef: %80) |                           
+      522 +| **O:** Müşteri elde tutma oranını artır | Churn prediction m
+          +odeli | Churn oranı %18 → %12 |                               
+      523 +| **KR1:** Kayıp riski yüksek müşterilerin %80'ini tespit et |
+          + Recall@top20% | %82 (hedef: %80) |                           
+      524  | **KR2:** Kampanya maliyetini %30 azalt | Precision-based tar
+           geting | %35 azalma (hedef: %30) |
+      525  | **KR3:** Q3 sonuna kadar production'a al | Deployment tarihi
+            | 2 hafta erken teslim |
+      526  
+      527 -**Boylece:** "AUC 0.87 olan bir model kurdum" degil, "Musteri 
+          -kayip oranini 6 puan dusurerek yillik 2.4M TL tasarruf saglaya
+          -n bir sistem kurdum" dersin.                                  
+      527 +**Böylece:** "AUC 0.87 olan bir model kurdum" değil, "Müşteri 
+          +kayıp oranını 6 puan düşürerek yıllık 2.4M TL tasarruf sağlaya
+          +n bir sistem kurdum" dersin.                                  
+      528  
+      529  ### Fairness ve Model Ethics Kontrol Listesi
+      530  
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 9 lines, removed 9 lines
+      528  
+      529  ### Fairness ve Model Ethics Kontrol Listesi
+      530  
+      531 -Her production modeli icin asagidaki kontrolleri yap:         
+      531 +Her production modeli için aşağıdaki kontrolleri yap:         
+      532  
+      533 -| Kontrol | Aciklama | Arac |                                 
+      533 +| Kontrol | Açıklama | Araç |                                 
+      534  |---------|----------|------|
+      535 -| **Demografik parite** | Model tahminleri korumali gruplara (
+          -cinsiyet, yas, etnik koken) gore anlamli farklilik gosteriyor 
+          -mu? | `fairlearn`, `aequitas` |                               
+      536 -| **Esit firsat (equalized odds)** | True positive rate grupla
+          -r arasi esit mi? | `fairlearn.metrics` |                      
+      537 -| **Calibration farki** | Model her grup icin esit derecede ka
+          -libre mi? | Calibration curve per group |                     
+      538 -| **Proxy degisken kontrolu** | Posta kodu, isim gibi degisken
+          -ler korunmali ozellikler icin proxy gorevI goruyor mu? | SHAP 
+          -interaction analizi |                                         
+      539 -| **Veri temsili** | Egitim verisinde azinlik gruplari yeterin
+          -ce temsil ediliyor mu? | `df.groupby("group").size()` |       
+      540 -| **Aciklanabilirlik** | Red karari alan bir kullanici "neden?
+          -" diye sorsa, anlasilir bir aciklama verebiliyor musun? | SHAP
+          - local explanation |                                          
+      541 -| **Dokumantasyon** | Model card'da fairness metrikleri ve bil
+          -inen kisitlamalar yazili mi? | Model card sablonu |           
+      535 +| **Demografik parite** | Model tahminleri korumalı gruplara (
+          +cinsiyet, yaş, etnik köken) göre anlamlı farklılık gösteriyor 
+          +mu? | `fairlearn`, `aequitas` |                               
+      536 +| **Eşit fırsat (equalized odds)** | True positive rate grupla
+          +r arası eşit mi? | `fairlearn.metrics` |                      
+      537 +| **Calibration farkı** | Model her grup için eşit derecede ka
+          +libre mi? | Calibration curve per group |                     
+      538 +| **Proxy değişken kontrolü** | Posta kodu, isim gibi değişken
+          +ler korumalı özellikler için proxy görevi görüyor mu? | SHAP i
+          +nteraction analizi |                                          
+      539 +| **Veri temsili** | Eğitim verisinde azınlık grupları yeterin
+          +ce temsil ediliyor mu? | `df.groupby("group").size()` |       
+      540 +| **Açıklanabilirlik** | Red kararı alan bir kullanıcı "neden?
+          +" diye sorsa, anlaşılır bir açıklama verebiliyor musun? | SHAP
+          + local explanation |                                          
+      541 +| **Dokümantasyon** | Model card'da fairness metrikleri ve bil
+          +inen kısıtlamalar yazılı mı? | Model card şablonu |           
+      542  
+      543  ```python
+      544  # Fairlearn ile hizli fairness kontrolu
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 3 lines, removed 3 lines
+      552      sensitive_features=df_test["gender"],
+      553  )
+      554  
+      555 -print(metric_frame.by_group)        # Grup bazli metrikler    
+      556 -print(metric_frame.difference())    # Gruplar arasi max fark  
+      557 -# Fark > 0.05 ise alarma gec ve mudahale stratejisi belirle   
+      555 +print(metric_frame.by_group)        # Grup bazlı metrikler    
+      556 +print(metric_frame.difference())    # Gruplar arası max fark  
+      557 +# Fark > 0.05 ise alarma geç ve müdahale stratejisi belirle   
+      558  ```
+      559  
+      560  ### Teslimat: Proje-7 Sistem Tasarim Dokumani
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 11 lines, removed 11 lines
+      557  # Fark > 0.05 ise alarma geç ve müdahale stratejisi belirle
+      558  ```
+      559  
+      560 -### Teslimat: Proje-7 Sistem Tasarim Dokumani                 
+      560 +### Teslimat: Proje-7 Sistem Tasarım Dokümanı                 
+      561  
+      562  - Real-time fraud scoring mimarisi
+      563  - Mimari diyagram (Mermaid veya draw.io)
+      564 -- Latency butcesi tablosu                                     
+      564 +- Latency bütçesi tablosu                                     
+      565  - Retraining stratejisi
+      566  - Maliyet tahmini
+      567 -- Fairness raporu (en az 2 metrik, grup bazli sonuclar)       
+      567 +- Fairness raporu (en az 2 metrik, grup bazlı sonuçlar)       
+      568  
+      569  **Checklist:**
+      570 -- [ ] En az 1 proje icin STAR formatinda etki hikayesi yazildi
+      571 -- [ ] OKR baglantisi kuruldu: model metrigi → is metrigi → par
+          -asal etki                                                     
+      572 -- [ ] Sistem tasarim dokumani tamamlandi (mimari diyagram + la
+          -tency butcesi)                                                
+      573 -- [ ] Fairness kontrol listesi en az 1 model icin uygulandI   
+      574 -- [ ] Model card'da fairness metrikleri ve bilinen kisitlamala
+          -r yer aliyor                                                  
+      575 -- [ ] ADR (Architecture Decision Record) yazildi: hangi model,
+          - neden, alternatifler                                         
+      576 -- [ ] En az 1 junior'a code review veya mentorluk yapildi (vey
+          -a simulasyonu)                                                
+      577 -- [ ] Stakeholder sunumu hazirlandi (teknik olmayan kitleye yo
+          -nelik)                                                        
+      570 +- [ ] En az 1 proje için STAR formatında etki hikayesi yazıldı
+      571 +- [ ] OKR bağlantısı kuruldu: model metriği → iş metriği → par
+          +asal etki                                                     
+      572 +- [ ] Sistem tasarım dokümanı tamamlandı (mimari diyagram + la
+          +tency bütçesi)                                                
+      573 +- [ ] Fairness kontrol listesi en az 1 model için uygulandı   
+      574 +- [ ] Model card'da fairness metrikleri ve bilinen kısıtlamala
+          +r yer alıyor                                                  
+      575 +- [ ] ADR (Architecture Decision Record) yazıldı: hangi model,
+          + neden, alternatifler                                         
+      576 +- [ ] En az 1 junior'a code review veya mentorluk yapıldı (vey
+          +a simülasyonu)                                                
+      577 +- [ ] Stakeholder sunumu hazırlandı (teknik olmayan kitleye yö
+          +nelik)                                                        
+      578  
+      579  ---
+      580  
+
+● Update(00-uygulama-sirasi.md)  ⎿  Added 6 lines, removed 6 lines
+      578  
+      579  ---
+      580  
+      581 -## En Kisa "Ise Girilebilir" Rota                             
+      581 +## En Kısa "İşe Girilebilir" Rota                             
+      582  
+      583 -Zaman cok kisitliysa (1–2 aylik sprint):                      
+      583 +Zaman çok kısıtlıysa (1–2 aylık sprint):                      
+      584  
+      585  ```
+      586 -Asama 0 → Asama 1 → Asama 3                                   
+      587 -(Proje-0 + Proje-1 + SQL mulakat seti + 2–3 ML case)          
+      586 +Aşama 0 → Aşama 1 → Aşama 3                                   
+      587 +(Proje-0 + Proje-1 + SQL mülakat seti + 2–3 ML case)          
+      588  ```
+      589  
+      590 -**Somut zaman plani:** Haftada 15 saat calisarak ~6 hafta. Tam
+          - zamanli (haftada 40 saat) calisarak ~3 hafta.                
+      590 +**Somut zaman planı:** Haftada 15 saat çalışarak ~6 hafta. Tam
+          + zamanlı (haftada 40 saat) çalışarak ~3 hafta.                
+      591  
+      592 -Bu rota junior-mid pozisyonlar icin yeterli. Senior icin Asama
+          - 4–7 gerekli (ek 3–5 ay).                                     
+      592 +Bu rota junior-mid pozisyonlar için yeterli. Senior için Aşama
+          + 4–7 gerekli (ek 3–5 ay).                                     
+      593  
+      594  ---
+      595  
+
+● Update(00-uygulama-sirasi.md)
+  ⎿  Added 9 lines, removed 9 lines
+      593  
+      594  ---
+      595  
+      596 -## Haftalik Calisma Ritmi                                     
+      596 +## Haftalık Çalışma Ritmi                                     
+      597  
+      598 -### Gunluk plan (2–3 saat)                                    
+      598 +### Günlük plan (2–3 saat)                                    
+      599  - **30 dk** — Teori (okuma, video)
+      600  - **90 dk** — Pratik (kod, proje)
+      601 -- **30 dk** — Not + ozet + "yarin ne yapacagim" listesi       
+      601 +- **30 dk** — Not + özet + "yarın ne yapacağım" listesi       
+      602  
+      603 -### Haftalik plan                                             
+      604 -| Gun | Aktivite |                                            
+      603 +### Haftalık plan                                             
+      604 +| Gün | Aktivite |                                            
+      605  |-----|---------|
+      606 -| Pazartesi–Carsamba | Yeni konu ogren |                      
+      607 -| Persembe | Mini proje veya odev teslimi |                   
+      608 -| Cuma | Haftalik review + rapor (bulgular + grafik) |        
+      609 -| Hafta sonu | Kaggle / okuma / izleme (zorunlu degil) |      
+      606 +| Pazartesi–Çarşamba | Yeni konu öğren |                      
+      607 +| Perşembe | Mini proje veya ödev teslimi |                   
+      608 +| Cuma | Haftalık review + rapor (bulgular + grafik) |        
+      609 +| Hafta sonu | Kaggle / okuma / izleme (zorunlu değil) |      
+      610  
+      611  ### "Takildim" protokolu
+      612  1. 15 dk kendi basina dene
+
+● Now let me check if there are any remaining corrupted characters in the file:
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+● Good. Now let me also check for remaining issues before fixing the CSS and
+  rebuilding the PDF:
+
+  Read 1 file (ctrl+o to expand)
+
+● Now I'll apply the CSS fixes for the visual PDF issues:
+
+● Update(build_pdf.py)
+  ⎿  Added 1 line, removed 1 line
+      327  }
+      328  
+      329  .cover h1 {
+      330 -    font-size: 32pt;                                          
+      330 +    font-size: 27pt;                                          
+      331      font-weight: 700;
+      332      color: #f1f5f9;
+      333      margin-bottom: 0.3em;
+
+● Update(build_pdf.py)
+  ⎿  Added 2 lines, removed 1 line
+      803     ════════════════════════════════════════ */
+      804  
+      805  .nav-footer {
+      806 -    margin-top: 3em;                                          
+      806 +    margin-top: 1.5em;                                        
+      807      padding: 0.9em 1.2em;
+      808      background: #f8faff;
+      809      border: 1px solid #e2eaf5;
+     ...
+      814      font-size: 8.5pt;
+      815      color: #64748b;
+      816      page-break-inside: avoid;
+      817 +    page-break-before: avoid;                                 
+      818  }
+      819  
+      820  .nav-footer a {
+
+● Update(build_pdf.py)
+  ⎿  Added 5 lines
+      664      border: none;
+      665  }
+      666  
+      667 +td code {                                                     
+      668 +    font-size: 7pt;                                           
+      669 +    padding: 0.08em 0.25em;                                   
+      670 +}                                                             
+      671 +                                                              
+      672  /* Syntax highlighting */
+      673  .highlight { background: #111827 !important; border-radius: 8p
+           x; }
+      674  .highlight .k,
+
+● Now let's rebuild the PDF:
+
+● Bash(python3 build_pdf.py 2>&1 | tail -20)
+  ⎿  PDF oluşturuluyor...
+       [1/15] README.md işleniyor...
+       [2/15] 00-uygulama-sirasi.md işleniyor...
+     … +18 lines (ctrl+o to expand)
+  ⎿  (timeout 2m)
+
+● PDF built successfully. Now let me update the çalışma günlüğü and push to git:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(calisma-gunlugu.md)
+  ⎿  Added 28 lines
+       87  
+       88  ---
+       89  
+       90 +## 2026-03-22 — İkinci Tur Kapsamlı Review + PDF İyileştirme  
+       91 +                                                              
+       92 +**Ne yapıldı:**                                               
+       93 +                                                              
+       94 +**Kritik hata düzeltmeleri:**                                 
+       95 +- `01-yetkinlik-matrisi.md`: 6 kırık link düzeltildi (03-probl
+          +em-cerceveleme.md vb. → gerçek katman dosyaları)              
+       96 +- `katman-A-temeller.md`: 4 kırık link düzeltildi + `katman-E-
+          +data-pipeline.md` → `katman-E-mlops.md`                       
+       97 +- `00-uygulama-sirasi.md`: Aşama 5-7 boyunca ASCII karakter bo
+          +zulması giderildi (ş→ş, ğ→ğ, ü→ü, ö→ö vb.)                    
+       98 +                                                              
+       99 +**İçerik genişletme:**                                        
+      100 +- `katman-E-mlops.md`: 963 → 1392 satır; E.9 Prometheus/Grafan
+          +a monitoring, E.10 MLflow Model Versioning, E.11 LLMOps (Langf
+          +use + RAGAS) eklendi                                          
+      101 +- `katman-G-senior-davranislar.md`: 902 → ~1350 satır; ICE kod
+          +u tamamlandı, automated stakeholder raporu, 3 OKR örneği, STAR
+          + hikayeleri, Teknik Borç Quadrantı eklendi                    
+      102 +- `katman-C-deney-nedensellik.md`: Çoklu test düzeltmeleri (Bo
+          +nferroni/BH/Holm, `multipletests()`) + IV zayıf araç senior no
+          +tu                                                            
+      103 +- `katman-D-derin-ogrenme.md`: Fine-tuning vs RAG karar rehber
+          +i + RAGAS evaluation kodu                                     
+      104 +- `katman-A-temeller.md`: Pandas vs Polars — 2026 Seçim Rehber
+          +i bölümü eklendi                                              
+      105 +- `kaynaklar.md`: Tüm URL'ler eklendi, blog ve newsletter bölü
+          +mleri güncellendi                                             
+      106 +                                                              
+      107 +**PDF / build iyileştirmeleri:**                              
+      108 +- `requirements.txt`: Oluşturuldu                             
+      109 +- `build_pdf.py`: CSS `pre { white-space: pre-wrap; word-break
+          +: break-word; }` düzeltmesi                                   
+      110 +- `build_pdf.py`: Kapak başlık font-size 32pt → 27pt (3-satır 
+          +sorunu giderildi)                                             
+      111 +- `build_pdf.py`: `.nav-footer` margin-top 3em → 1.5em + `page
+          +-break-before: avoid` (boş sayfa giderildi)                   
+      112 +- `build_pdf.py`: `td code { font-size: 7pt }` (tablo hücresin
+          +de kod taşması giderildi)                                     
+      113 +- PDF metadata eklendi (author, description, keywords)        
+      114 +- PDF yeniden üretildi: 2.1 MB                                
+      115 +                                                              
+      116 +---                                                           
+      117 +                                                              
+      118  ## Çalışma Seansı Şablonu
+      119  
+      120  ```markdown
+
+● Now let's push everything to git:
+
+● Bash(git status)
+  ⎿  Üzerinde bulunulan dal: main
+     Dalınız 'origin/main' ile güncel.
+     … +15 lines (ctrl+o to expand)
+
+● Bash(git add 00-uygulama-sirasi.md build_pdf.py calisma-gunlugu.md
+      veri-bilimci-yol-haritasi.pdf && git commit -m "$(cat <<'EOF'
+      fix: Türkçe karakter bozulması gider…)
+  ⎿  [main 2764771] fix: Türkçe karakter bozulması giderildi, PDF görsel ha
+     talar düzeltildi
+      4 files changed, 137 insertions(+), 103 deletions(-)
+
+● Bash(git push)
+  ⎿  To https://github.com/eminkrky/veri-bilimci-yol-haritasi.git
+        69b3014..2764771  main -> main
+
+● Tüm düzeltmeler tamamlandı ve GitHub'a gönderildi:
+
+  Yapılan düzeltmeler:
+
+  1. 00-uygulama-sirasi.md — Türkçe karakter bozulmaları giderildi:
+    - Aşama 6 (MLOps + Sistem Tasarımı) tam bölümü — tüm ş/ğ/ü/ö/ç/ı harfleri
+  düzeltildi
+    - Aşama 7 (Senior Seviyeye Geçiş) tam bölümü — STAR formatı, OKR tablosu,
+  Fairness listesi
+    - "En Kısa Rota" ve "Haftalık Çalışma Ritmi" bölümleri
+    - NLP ve RecSys paragraflarındaki nokta hatalar (ücretsiz, süresi, ayırt)
+  2. build_pdf.py — Görsel PDF hataları:
+    - Kapak başlık: 32pt → 27pt (3-satır taşması giderildi)
+    - .nav-footer: margin-top: 3em → 1.5em + page-break-before: avoid (boş sayfa
+   viii giderildi)
+    - td code: font-size: 7pt eklendi (tablo hücrelerinde kod taşması giderildi)
+  3. PDF yeniden üretildi: 2.1 MB, hatasız
+
+✻ Brewed for 19m 17s
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 4.6
+
+❯ başlıklandrıma ve numaralandırmayı daha iyi hale getir detaylı şekilde aynı   
+bir kitap gibi olsun                                                            
+  kapaklar daha iyi olsun ayrıca kenarında beyaz boşluk olmasın alt agentlara   
+iş bölümlemesi de                                                               
+  yaparak çok iyi bir pdf haline getir kitap okuyucuya neyi nasıl hangi yol     
+hatiyasında yapması                                                             
+  gerektiğini anlalsın sektörden bilinen isimlerin veya kurumların birebir      
+tavsyilerini de derle ve                                                        
+  ekle ayrıca kitap genelinde de bu şekilde olsun bu kitabı okuyup uygulayan    
+birisi sektörde aranan                                                          
+  eleman olsun                                                                  
+
+  Read 1 file (ctrl+o to expand)
+
+● Bu eski plan tamamlanmış. Yeni bir görev var: PDF'yi profesyonel bir kitap
+  kalitesine çıkarmak. Önce mevcut durumu keşfedelim.
+
+● 3 Explore agents finished (ctrl+o to expand)
+   ├─ Explore PDF build system · 8 tool uses · 28.6k tokens
+   │  ⎿  Done
+   ├─ Explore content files structure · 21 tool uses · 31.6k tokens
+   │  ⎿  Done
+   └─ Explore PDF visual output · 9 tool uses · 44.0k tokens
+      ⎿  Done
+
+● Now let me launch a Plan agent with all the context gathered to design the
+  implementation approach.
+● Plan(Design PDF book improvement plan)
+  ⎿  Done (16 tool uses · 43.7k tokens · 2m 53s)
+  (ctrl+o to expand)
+
+● Now let me write the final plan to the plan file, synthesizing all findings.
+
+● Updated plan
+  ⎿  /plan to preview
+
+● Plan hazır. Özet:
+
+  5 paralel agent ile profesyonel kitap dönüşümü:
+
+  1. build_pdf.py yeniden tasarım — Full-bleed kapaklar (beyaz kenar yok),
+  "Bölüm 1-9 / Ek A-C" numaralandırma, TOC'a h2 alt girişleri, heading remapping
+   (A.1→2.1), dekoratif separator sayfaları + "Bu Bölümde" kutusu
+  2. 5 yeni callout kutusu — Sektör tavsiyesi (mor), öğrenme hedefleri (yeşil),
+  sırada ne var (mor), mülakat ipucu (kırmızı), portföy projesi (sarı)
+  3. 15-20 gerçek sektör alıntısı — Andrew Ng, Cassie Kozyrkov, Andrej Karpathy,
+   Pedro Domingos, Chip Huyen vb.
+  4. Tüm 15 dosyaya learning objectives + what's next + interview tips +
+  portfolio callouts eklenmesi
+  5. PDF rebuild + doğrulama
+  ⎿  Tool use rejected
+
+● User approved Claude's plan
+  ⎿  Plan saved to: ~/.claude/plans/tingly-wibbling-seahorse.md · /plan to edit
+     Plan: Profesyonel Kitap PDF Dönüşümü
+
+     Context
+
+     Mevcut ~17,600 satırlık Türkçe veri bilimi rehberi fonksiyonel ama "amatör"
+      bir PDF üretiyor. Kullanıcı bunu profesyonel bir yayınevi kitabı
+     kalitesine çıkarmak istiyor: tutarlı numaralandırma, tam kenar kapaklar,
+     sektör tavsiyeleri ve iş bulma odaklı içerik.
+
+     ---
+     ADIM 1 — build_pdf.py: Yapısal ve Görsel Dönüşüm (Agent 1)
+
+     1A. Tutarlı Bölüm Numaralandırma Sistemi
+
+     CHAPTER_META'ya yeni alanlar ekle:
+
+     ┌────────────────────────────────┬────────────┬───────────┬──────────┐
+     │             Dosya              │ book_label │ ghost_num │ Kategori │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ README.md                      │ —          │ —         │ front    │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ 00-uygulama-sirasi.md          │ —          │ —         │ front    │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ 01-yetkinlik-matrisi.md        │ —          │ —         │ front    │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ katman-0-matematik.md          │ Bölüm 1    │ 1         │ chapter  │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ katman-A-temeller.md           │ Bölüm 2    │ 2         │ chapter  │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ katman-B-klasik-ml.md          │ Bölüm 3    │ 3         │ chapter  │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ katman-C-deney-nedensellik.md  │ Bölüm 4    │ 4         │ chapter  │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ katman-D-derin-ogrenme.md      │ Bölüm 5    │ 5         │ chapter  │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ katman-E-mlops.md              │ Bölüm 6    │ 6         │ chapter  │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ katman-F-sistem-tasarimi.md    │ Bölüm 7    │ 7         │ chapter  │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ katman-G-senior-davranislar.md │ Bölüm 8    │ 8         │ chapter  │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ katman-H-buyuk-veri.md         │ Bölüm 9    │ 9         │ chapter  │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ projeler.md                    │ Ek A       │ A         │ appendix │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ mulakat.md                     │ Ek B       │ B         │ appendix │
+     ├────────────────────────────────┼────────────┼───────────┼──────────┤
+     │ kaynaklar.md                   │ Ek C       │ C         │ appendix │
+     └────────────────────────────────┴────────────┴───────────┴──────────┘
+
+     - Tüm dosyalar is_separator: True olacak (front matter + ekler dahil)
+     - build_chapter_separator(): book_label kullanarak "Bölüm 3" veya "Ek A"
+     göster
+     - build_toc(): Tüm girişlere bölüm numarası ekle
+
+     1B. Başlık Numaralandırmasını PDF'de Dönüştür
+
+     Markdown dosyalarına dokunmadan, md_to_html() sonrasında regex ile dönüşüm:
+     - ## A.1 → ## 2.1, ## B.3 → ## 3.3, ## 0.1 → ## 1.1 vb.
+     - Sadece HTML çıktısında, <h2> ve <h3> taglerinde
+
+     HEADING_REMAP = {"0": "1", "A": "2", "B": "3", "C": "4", "D": "5", "E":
+     "6", "F": "7", "G": "8", "H": "9"}
+
+     def remap_headings(html_text, fname):
+         meta = CHAPTER_META.get(fname, {})
+         old_prefix = meta.get("num")
+         new_num = meta.get("book_num")
+         if old_prefix and new_num:
+             html_text = re.sub(
+                 rf'(<h[23][^>]*>)\s*{re.escape(old_prefix)}\.',
+                 rf'\g<1>{new_num}.',
+                 html_text)
+         return html_text
+
+     1C. Tam Kenar (Full-Bleed) Kapak ve Bölüm Sayfaları
+
+     Mevcut sorun: Chapter separator'lar negatif margin hack'i kullanıyor →
+     beyaz kenar riski.
+
+     Çözüm: Ayrı @page kuralı:
+
+     @page chapter-sep-page {
+         size: A4;
+         margin: 0;
+         @top-left    { content: none; }
+         @top-right   { content: none; }
+         @top-center  { content: none; }
+         @bottom-left { content: none; }
+         @bottom-right { content: none; }
+         @bottom-center { content: none; }
+     }
+
+     .chapter-separator {
+         page: chapter-sep-page;
+         page-break-before: always;
+         page-break-after: always;
+         width: 21cm;
+         min-height: 29.7cm;
+         margin: 0;  /* negatif margin KALDIRILACAK */
+         padding: 3cm 3.5cm 4cm 3.5cm;
+         /* geri kalan stiller aynı */
+     }
+
+     1D. Geliştirilmiş Bölüm Kapak Tasarımı
+
+     Her separator sayfaya "Bu Bölümde" kutusu ekle:
+
+     CHAPTER_META'ya topics listesi ekle (3-5 madde/bölüm):
+     "katman-B-klasik-ml.md": {
+         ...
+         "topics": ["Problem framing ve metrik seçimi", "Karar ağaçları ve 
+     ensemble yöntemleri",
+                    "XGBoost/LightGBM ile modelleme", "SHAP ile 
+     açıklanabilirlik", "Model kalibrasyon ve değerlendirme"],
+     }
+
+     CSS:
+     .ch-preview {
+         margin-top: 2em;
+         padding: 1em 1.5em;
+         background: rgba(255,255,255,0.04);
+         border: 1px solid rgba(255,255,255,0.08);
+         border-radius: 8px;
+         max-width: 13cm;
+     }
+     .ch-preview-label {
+         font-size: 8pt; text-transform: uppercase;
+         letter-spacing: 0.15em; color: #60a5fa;
+         margin-bottom: 0.5em;
+     }
+     .ch-preview ul { color: #94a3b8; font-size: 9.5pt; margin: 0; padding-left:
+      1.2em; }
+
+     Dekoratif CSS:
+     .chapter-separator::after {
+         content: "";
+         position: absolute;
+         bottom: -2cm; right: -2cm;
+         width: 12cm; height: 12cm;
+         border: 2px solid rgba(255,255,255,0.03);
+         border-radius: 50%;
+     }
+
+     1E. TOC İyileştirmesi
+
+     - h2 başlıklarını alt giriş olarak TOC'a ekle (her dosyanın markdown'ını
+     parse et)
+     - Yeni CSS: .toc-subentry { padding-left: 5.5em; font-size: 9pt; color: 
+     #64748b; }
+
+     1F. Yeni CSS Callout Sınıfları
+
+     Sektör tavsiyesi kutusu:
+     .industry-quote {
+         background: linear-gradient(135deg, #f0f4ff, #e8eef8);
+         border-left: 4px solid #6366f1;
+         padding: 1em 1.3em;
+         border-radius: 0 8px 8px 0;
+         font-style: italic; color: #312e81; font-size: 10pt;
+         page-break-inside: avoid;
+     }
+     .industry-quote .quote-author {
+         font-style: normal; font-weight: 600;
+         font-size: 8.5pt; color: #4338ca;
+         margin-top: 0.5em; display: block;
+     }
+
+     Öğrenme hedefleri kutusu:
+     .learning-objectives {
+         background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+         border-left: 4px solid #059669;
+         padding: 0.9em 1.2em;
+         border-radius: 0 8px 8px 0;
+         font-size: 9.5pt; color: #064e3b;
+         page-break-inside: avoid;
+     }
+
+     Sırada ne var kutusu:
+     .whats-next {
+         background: linear-gradient(135deg, #faf5ff, #ede9fe);
+         border-left: 4px solid #7c3aed;
+         padding: 0.9em 1.2em;
+         border-radius: 0 8px 8px 0;
+         font-size: 9.5pt; color: #4c1d95;
+     }
+
+     Mülakat ipucu kutusu:
+     .interview-tip {
+         background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+         border-left: 4px solid #e11d48;
+         padding: 0.7em 1.1em;
+         border-radius: 0 8px 8px 0;
+         font-size: 9pt; color: #881337;
+     }
+
+     Portföy projesi kutusu:
+     .portfolio-idea {
+         background: linear-gradient(135deg, #fffbeb, #fef3c7);
+         border-left: 4px solid #d97706;
+         padding: 0.7em 1.1em;
+         border-radius: 0 8px 8px 0;
+         font-size: 9pt; color: #78350f;
+     }
+
+     Dosya: build_pdf.py
+
+     ---
+     ADIM 2 — Sektör Tavsiyeleri Araştırma ve Hazırlık (Agent 5)
+
+     Web araştırmasıyla doğrulanmış, gerçek alıntılar toplanacak (15-20 adet):
+
+     ┌─────────────────────────┬───────────────────┬──────────────────────────┐
+     │          Bölüm          │    Kişi/Kurum     │           Konu           │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Genel (Giriş)           │ DJ Patil          │ Veri bilimi kariyeri     │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Genel (Giriş)           │ Andrew Ng         │ AI'ın geleceği           │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman 0 (Matematik)    │ Andrew Ng         │ Matematik sezgisi ve ML  │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman A (Temeller)     │ Hadley Wickham    │ Veri düzenleme (tidy     │
+     │                         │                   │ data)                    │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman B (Klasik ML)    │ Pedro Domingos    │ Veri vs algoritma        │
+     │                         │                   │ önceliği                 │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman B (Klasik ML)    │ George Box        │ "All models are          │
+     │                         │                   │ wrong..."                │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman C (Deney)        │ Cassie Kozyrkov   │ İstatistik ve karar      │
+     │                         │                   │ bilimi                   │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman C (Deney)        │ Ron Kohavi        │ A/B test kültürü         │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman D (Derin         │ Andrej Karpathy   │ Neural network pratik    │
+     │ Öğrenme)                │                   │                          │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman D (Derin         │ Yann LeCun        │ Self-supervised learning │
+     │ Öğrenme)                │                   │                          │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman E (MLOps)        │ D. Sculley        │ ML technical debt        │
+     │                         │ (Google)          │                          │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman F (Sistem        │ Netflix           │ Kişiselleştirme sistemi  │
+     │ Tasarımı)               │ Engineering       │                          │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman G (Senior)       │ Cassie Kozyrkov   │ DS'in asıl görevi        │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Katman H (Büyük Veri)   │ Jeff Dean         │ Dağıtık sistemler        │
+     ├─────────────────────────┼───────────────────┼──────────────────────────┤
+     │ Mülakat                 │ Chip Huyen        │ ML mülakat hazırlığı     │
+     └─────────────────────────┴───────────────────┴──────────────────────────┘
+
+     Her alıntı HTML div olarak hazırlanacak:
+     <div class="industry-quote">
+     "Alıntı metni..."
+     <span class="quote-author">— İsim, Unvan/Kurum</span>
+     </div>
+
+     ---
+     ADIM 3 — İçerik: Ön Madde + Katman 0-B (Agent 2)
+
+     Dosyalar: README.md, 00-uygulama-sirasi.md, 01-yetkinlik-matrisi.md,
+     katman-0-matematik.md, katman-A-temeller.md, katman-B-klasik-ml.md
+
+     Her dosyaya eklenecekler:
+     1. "Bu Bölümde Ne Öğreneceksiniz" — h1'den sonra, <div 
+     class="learning-objectives"> ile
+     2. "Sırada Ne Var?" — dosya sonunda, <div class="whats-next"> ile
+     3. Sektör alıntıları — 1-2 adet/dosya, <div class="industry-quote">
+     4. Mülakat ipuçları — katman-A ve katman-B'de 2-3 adet, <div 
+     class="interview-tip">
+     5. Portföy projesi bağlantıları — ilgili yerlerde, <div 
+     class="portfolio-idea">
+
+     ---
+     ADIM 4 — İçerik: Katman C-F (Agent 3)
+
+     Dosyalar: katman-C-deney-nedensellik.md, katman-D-derin-ogrenme.md,
+     katman-E-mlops.md, katman-F-sistem-tasarimi.md
+
+     Aynı pattern: learning objectives, what's next, 1-2 sektör alıntısı, 2-3
+     mülakat ipucu, portföy bağlantıları.
+
+     ---
+     ADIM 5 — İçerik: Katman G-H + Ekler (Agent 4)
+
+     Dosyalar: katman-G-senior-davranislar.md, katman-H-buyuk-veri.md,
+     projeler.md, mulakat.md, kaynaklar.md
+
+     Aynı pattern + özel ekler:
+     - mulakat.md: Ekstra 5+ mülakat ipucu kutusu
+     - kaynaklar.md: "Sektörde En Çok Referans Verilen Top 5 Kaynak" bölümü
+
+     ---
+     Paralel Çalışma Dağılımı
+
+     ┌─────────────────────────┐   ┌─────────────────────────┐
+     │ Agent 1: build_pdf.py   │   │ Agent 5: Alıntı araştır │
+     │ (CSS + HTML yapısı)     │   │ (web search + hazırla)  │
+     └────────────┬────────────┘   └────────────┬────────────┘
+                  │                              │
+                  │    ┌─────────────────────────┐│
+                  │    │ Alıntılar hazır         ││
+                  │    └─────────────────────────┘│
+                  ▼                              ▼
+     ┌────────────┐  ┌────────────┐  ┌────────────┐
+     │ Agent 2    │  │ Agent 3    │  │ Agent 4    │
+     │ Ön+0-B    │  │ C-F        │  │ G-H+Ekler  │
+     └────────────┘  └────────────┘  └────────────┘
+                  │         │              │
+                  ▼         ▼              ▼
+             ┌──────────────────────────────┐
+             │ PDF build + doğrulama        │
+             └──────────────────────────────┘
+
+     Faz 1 (paralel): Agent 1 + Agent 5 eşzamanlı başlar
+     Faz 2 (paralel): Agent 2 + Agent 3 + Agent 4 eşzamanlı başlar (Agent 5'ten
+     gelen alıntıları entegre eder)
+     Faz 3: python3 build_pdf.py çalıştır, PDF doğrula
+
+     ---
+     Etkilenen Dosyalar
+
+     ┌────────────────────────────────┬─────────────────────────────────────────
+     ┐
+     │             Dosya              │                  İşlem
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │                                │ CSS yeniden tasarım, @page kuralları,
+     │
+     │ build_pdf.py                   │ separator/TOC/kapak, heading remap,
+     │
+     │                                │ callout CSS
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │ README.md                      │ learning-objectives, industry-quote,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │ 00-uygulama-sirasi.md          │ learning-objectives, whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │ 01-yetkinlik-matrisi.md        │ learning-objectives, industry-quote,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │ katman-0-matematik.md          │ learning-objectives, industry-quote,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │                                │ learning-objectives, industry-quote,
+     │
+     │ katman-A-temeller.md           │ interview-tip, portfolio-idea,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │                                │ learning-objectives, industry-quote,
+     │
+     │ katman-B-klasik-ml.md          │ interview-tip, portfolio-idea,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │                                │ learning-objectives, industry-quote,
+     │
+     │ katman-C-deney-nedensellik.md  │ interview-tip, portfolio-idea,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │                                │ learning-objectives, industry-quote,
+     │
+     │ katman-D-derin-ogrenme.md      │ interview-tip, portfolio-idea,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │                                │ learning-objectives, industry-quote,
+     │
+     │ katman-E-mlops.md              │ interview-tip, portfolio-idea,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │                                │ learning-objectives, industry-quote,
+     │
+     │ katman-F-sistem-tasarimi.md    │ interview-tip, portfolio-idea,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │ katman-G-senior-davranislar.md │ learning-objectives, industry-quote,
+     │
+     │                                │ whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │ katman-H-buyuk-veri.md         │ learning-objectives, industry-quote,
+     │
+     │                                │ interview-tip, whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │ projeler.md                    │ learning-objectives, whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │ mulakat.md                     │ learning-objectives, interview-tip
+     │
+     │                                │ (5+), industry-quote, whats-next
+     │
+     ├────────────────────────────────┼─────────────────────────────────────────
+     ┤
+     │ kaynaklar.md                   │ learning-objectives, "Top 5 Kaynak"
+     │
+     │                                │ bölümü
+     │
+     └────────────────────────────────┴─────────────────────────────────────────
+     ┘
+
+     ---
+     Doğrulama
+
+     1. python3 build_pdf.py hatasız çalışır
+     2. Kapak sayfası: beyaz kenar YOK
+     3. Tüm bölüm separator sayfaları: beyaz kenar YOK, "Bu Bölümde" kutusu var
+     4. TOC: Tüm bölümler numaralı, h2 alt girişleri var, sayfa numaraları doğru
+     5. Heading'ler: 2.1, 3.3 formatında (Katman harf numaraları değil)
+     6. Yeni callout kutuları: industry-quote (mor), learning-objectives
+     (yeşil), whats-next (mor), interview-tip (kırmızı), portfolio-idea (sarı)
+     düzgün render
+     7. PDF boyutu: 2-3 MB aralığında
+     8. git push başarılı
+
+● Başlıyorum. Önce Faz 1: build_pdf.py yapısal dönüşüm + sektör alıntıları
+  araştırması paralel olarak.
+
+❯ /btw                                                                          
+  ⎿  Usage: /btw &lt;your question&gt;
+
+● 2 agents finished (ctrl+o to expand)
+   ├─ build_pdf.py full restructure · 5 tool uses · 32.5k tokens
+   │  ⎿  Done
+   └─ Research industry quotes · 22 tool uses · 28.0k tokens
+      ⎿  Done
+  ⎿  You've hit your limit · resets 3am (Europe/Istanbul)
+     /upgrade or /extra-usage to finish what you’re working on.
+
+✻ Sautéed for 10m 16s

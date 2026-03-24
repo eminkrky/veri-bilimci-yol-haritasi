@@ -1,5 +1,19 @@
 # Veri Bilimci Yol Haritası — 0 → Senior
 
+<div class="learning-objectives">
+<strong>Bu Bölümde Ne Öğreneceksiniz</strong>
+<ul>
+<li>Rehberin yapısını ve öğrenme yollarını tanıyacaksınız</li>
+<li>Hangi profilden olursanız olun, nereden başlamanız gerektiğini öğreneceksiniz</li>
+<li>Kitabın dosya yapısını ve navigasyonunu anlayacaksınız</li>
+</ul>
+</div>
+
+<div class="industry-quote">
+"Veriyi anlama, işleme, değer çıkarma, görselleştirme ve iletişim kurma becerisi — önümüzdeki on yılların en kritik yetkinliği olacak."
+<span class="quote-author">— DJ Patil, ABD İlk Baş Veri Bilimcisi</span>
+</div>
+
 > **Türkçe yazılmış, kapsamlı, ücretsiz veri bilimi öğrenme rehberi.**
 > Sıfırdan başlayan → senior seviyeye ulaşmak isteyen herkes için.
 
@@ -157,6 +171,11 @@ Bu rehber şu kaynaklara dayanmaktadır:
 *Son güncelleme: Mart 2026*
 
 ---
+
+<div class="whats-next">
+<strong>Sırada Ne Var?</strong>
+<p>Bir sonraki bölümde sizi adım adım 0'dan Senior'a taşıyacak 8 aşamalı öğrenme planını bulacaksınız.</p>
+</div>
 
 <div class="nav-footer">
   <span></span>
